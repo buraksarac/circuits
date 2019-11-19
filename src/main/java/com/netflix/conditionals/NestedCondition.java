@@ -17,10 +17,7 @@ public class NestedCondition<T> {
 
 	void audit(T value) {
 		for (CircuitCondition<T> condition : conditions) {
-			if (condition.test(value)) {
-				throw new CircuitCondition.ConditionMismatchException(
-						"For value : " + value + "Condition not satisfied : " + condition.toString());
-			}
+			condition.accept(value);
 		}
 	}
 }
