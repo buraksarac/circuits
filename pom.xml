@@ -10,6 +10,11 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
+	<!-- <dependencies> bitset is my dependency ^^, not in maven repo yet, source 
+		here https://github.com/buraksarac/bitset <dependency> <groupId>org.qunix</groupId> 
+		<artifactId>bitset</artifactId> <version>0.0.1-SNAPSHOT</version> </dependency> 
+		</dependencies> -->
+
 
 	<build>
 		<plugins>

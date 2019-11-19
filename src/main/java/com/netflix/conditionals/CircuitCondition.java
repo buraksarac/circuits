@@ -5,25 +5,32 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public class CircuitCondition<T> {
 
 	private Set<T> values = new HashSet<>();
 	private boolean isNull = false;
-	protected boolean open = false;
+	boolean open = false;
 	private Predicate<T> predicate = t -> true;
+	private StringBuilder valueStr = new StringBuilder();
+	private StringBuilder whenStr = new StringBuilder("WHEN TRUE ");
 
-	protected CircuitCondition(T... value) {
+	CircuitCondition(T... value) {
 		isNull = value == null;
 		if (!isNull) {
 			if (value.length == 0) {
 				throw new IllegalArgumentException("Condition value can not be empty");
 			}
+			valueStr.append("ON [ ");
 			Arrays.asList(value).forEach(values::add);
+			String valueString = values.stream().map(t -> t.toString()).collect(Collectors.joining(","));
+			valueStr.append(valueString);
+			valueStr.append(" ] ");
 		}
 	}
-	
+
 	public static <T> CircuitCondition<T> of(T... value) {
 		return new CircuitCondition<>(value);
 	}
@@ -32,12 +39,17 @@ public class CircuitCondition<T> {
 		return new When(false, condition);
 	}
 
-	protected boolean test(T t) {
-		if(this.values.contains(t) || (isNull && t == null)) {
+	boolean test(T t) {
+		if (this.values.contains(t) || (isNull && t == null)) {
 			this.open = !open;
 			return true;
 		}
 		return this.predicate.test(t);
+	}
+	
+	@Override
+	public String toString() {
+		return this.valueStr.append(this.whenStr).toString();
 	}
 
 	private enum BuildType {
@@ -64,6 +76,7 @@ public class CircuitCondition<T> {
 
 		private void build() {
 			Predicate<T> predicate = t -> true;
+			CircuitCondition.this.whenStr.append(or ? " OR " : " AND ").append(" WHEN [ TRUE ");
 			switch (this.buildType) {
 			case CIRCUIT:
 				for (CircuitCondition<T> source : sources) {
@@ -73,19 +86,41 @@ public class CircuitCondition<T> {
 								: true;
 					};
 					predicate = predicate.and(circuitPredicate);
+					CircuitCondition.this.whenStr.append(" AND [ if ")
+						.append(source.valueStr)
+						.append(" contains($value) ")
+						.append(CircuitCondition.this.valueStr)
+						.append(expectClose ? "isClosed ]" : "isOpen ]");
 				}
+				CircuitCondition.this.whenStr.append(" ] ");
 				break;
 			case SOURCE:
+				CircuitCondition.this.whenStr.append(" WHEN [ TRUE ");
 				for (CircuitCondition<T> source : sources) {
 					Predicate<T> sourcePredicate = t -> {
 						return source.values.contains(t) ? (expectClose ? !source.open : source.open) : true;
 					};
 					predicate = predicate.and(sourcePredicate);
+					CircuitCondition.this.whenStr.append(" AND [ if ")
+						.append(source.valueStr)
+						.append(" contains($value) ")
+						.append(source.valueStr)
+						.append(expectClose ? "isClosed ]" : "isOpen ]");
 				}
+				CircuitCondition.this.whenStr.append(" ] ");
 				break;
 
 			default:
+				CircuitCondition.this.whenStr.append(" WHEN [ TRUE ");
 				for (CircuitCondition<T> source : sources) {
+					CircuitCondition.this.whenStr.append(" AND [ if ")
+						.append(source.valueStr)
+						.append(" contains($value) then ");
+					for (CircuitCondition<T> target : targets) {
+						whenStr.append(" [ ")
+							.append(target.valueStr)
+							.append(expectClose ? "isClosed ]" : "isOpen ]");
+					}
 					Predicate<T> sourcePredicate = t -> {
 						boolean condition = source.values.contains(t);
 						if (condition) {
@@ -98,8 +133,10 @@ public class CircuitCondition<T> {
 						}
 						return true;
 					};
+
 					predicate = predicate.and(sourcePredicate);
 				}
+				CircuitCondition.this.whenStr.append(" ] ");
 				break;
 			}
 
@@ -198,7 +235,7 @@ public class CircuitCondition<T> {
 		}
 	}
 
-	private static final <T> void checkEmpty(T[] array, String message) {
+	static final <T> void checkEmpty(T[] array, String message) {
 		if (array == null || array.length < 1) {
 			throw new IllegalArgumentException(message);
 		}
