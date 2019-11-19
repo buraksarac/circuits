@@ -43,15 +43,22 @@ public class CircuitTest {
 
 	@Test
 	public void testWhen() {
-		// accept 12.054e1 isDouble
-		CircuitCondition<Character> decimal = CircuitCondition.flipCircuit('.');
-		CircuitCondition<Character> exponent = CircuitCondition.of('e');
-
+		// test 12.054e1 isDouble
+		CircuitCondition<Character> digit = CircuitCondition.between('0', '9');
+		CircuitCondition<Character> decimal = CircuitCondition.of('.').maxOccurence(1);
+		CircuitCondition<Character> exponent = CircuitCondition.of('e').maxOccurence(1);
+		
+		digit.ignore(decimal,exponent);
+		digit.when(decimal).expect().circuitOpen();
 		decimal.when(exponent).expect().circuitOpen();
 
-		decimal.accept('.');// open circuit
-		exponent.accept('e');// open circuit
-		decimal.accept('e');
+		char[] chars = "12.0e54e1".toCharArray();
+		for(char c : chars) {
+			digit.accept(c);
+			decimal.accept(c);
+			exponent.accept(c);
+		}
+		assertTrue(digit.open);
 		assertTrue(decimal.open);
 		assertTrue(exponent.open);
 

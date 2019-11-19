@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 public class CircuitCondition<T> {
 
 	private Set<T> values = new HashSet<>();
+	private Set<T> ignores = new HashSet<>();
 	private boolean isNull = false;
 	boolean open = false;
 	private Predicate<T> predicate = t -> true;
@@ -19,6 +20,8 @@ public class CircuitCondition<T> {
 	private Consumer<T> openConsumer;
 	private Consumer<T> closeConsumer;
 	private boolean flip;
+	private long max = -1;
+	private long currentOccurence = 0;
 
 	@SafeVarargs
 	CircuitCondition(boolean circuitState, boolean flip, T... value) {
@@ -86,48 +89,82 @@ public class CircuitCondition<T> {
 		return new When<T>(false, condition);
 	}
 
-	public void onOpen(Consumer<T> consumer) {
+	public CircuitCondition<T> onOpen(Consumer<T> consumer) {
 		this.openConsumer = consumer;
+		return this;
 	}
 
-	public void onClose(Consumer<T> consumer) {
+	public CircuitCondition<T> onClose(Consumer<T> consumer) {
 		this.closeConsumer = consumer;
+		return this;
+	}
+
+	public CircuitCondition<T> maxOccurence(long max) {
+		this.whenStr.append(" AND [max occurence  of ")
+		.append(this.valueStr)
+		.append(" less or equals to ")
+		.append(max)
+		.append(" ] ");
+		this.max = max;
+		return this;
+	}
+
+	@SafeVarargs
+	public final void ignore(T... value) {
+		checkEmpty(value, "Empty or null ignore list");
+		Arrays.asList(value).forEach(ignores::add);
+	}
+
+	@SafeVarargs
+	public final void ignore(CircuitCondition<T>... condition) {
+		checkEmpty(condition, "Empty or null ignore list");
+		Arrays.asList(condition).forEach(c -> {
+			ignores.addAll(c.values);
+		});
 	}
 
 	boolean test(T t) {
-		boolean stateChange = false;
-		if (this.values.contains(t) || (isNull && t == null)) {
-			if(this.flip) {
-				this.open = !open;
-				stateChange = true;
-			}else if(!this.open) {
+		if (!ignores.contains(t)) {
+			boolean stateChange = false;
+			if (this.values.contains(t) || (isNull && t == null)) {
+				if (this.max > -1 && this.currentOccurence++ > this.max) {
+					return false;
+				}
+				if (this.flip) {
+					this.open = !open;
+					stateChange = true;
+				} else if (!this.open) {
+					this.open = !open;
+					stateChange = true;
+				}
+			} else if (!this.flip && this.open && (!this.values.contains(t) || (isNull && t != null))) {
 				this.open = !open;
 				stateChange = true;
 			}
-		} else if (!this.flip && this.open && (!this.values.contains(t) || (isNull && t != null))) {
-			this.open = !open;
-			stateChange = true;
+			if (stateChange) {
+				if (this.open && this.openConsumer != null) {
+					this.openConsumer.accept(t);
+				} else if (this.closeConsumer != null) {
+					this.closeConsumer.accept(t);
+				}
+			}
+
 		}
-		if (stateChange && this.open && this.openConsumer != null) {
-			this.openConsumer.accept(t);
-		} else if (stateChange && !this.open && this.closeConsumer != null) {
-			this.closeConsumer.accept(t);
-		}
+
 		return this.predicate.test(t);
 	}
 
 	void accept(T t) {
 		boolean result = this.test(t);
 		if (!result) {
-			throw new CircuitCondition.ConditionMismatchException(
-					"For value : " + t + "Condition not satisfied : " + this.toString());
+			throw new CircuitCondition.ConditionMismatchException("Condition not satisfied : " + this.toString(), t);
 		}
 
 	}
 
 	@Override
 	public String toString() {
-		return this.valueStr.append(" => ").append(this.whenStr).toString();
+		return this.valueStr.append("(this), condition(s):").append(this.whenStr).toString();
 	}
 
 	private enum BuildType {
@@ -166,7 +203,7 @@ public class CircuitCondition<T> {
 					};
 					predicate = predicate.and(circuitPredicate);
 					CircuitCondition.this.whenStr.append("  [ if ").append(source.valueStr)
-							.append(" contains($value) check ").append(CircuitCondition.this.valueStr)
+							.append(" received then check ").append(CircuitCondition.this.valueStr)
 							.append(expectClose ? "isClosed ]" : "isOpen ]");
 				}
 				break;
@@ -177,7 +214,7 @@ public class CircuitCondition<T> {
 					};
 					predicate = predicate.and(sourcePredicate);
 					CircuitCondition.this.whenStr.append("  [ if ").append(source.valueStr)
-							.append(" contains($value) check ").append(source.valueStr)
+							.append(" received then check ").append(source.valueStr)
 							.append(expectClose ? "isClosed ]" : "isOpen ]");
 				}
 				break;
@@ -185,9 +222,9 @@ public class CircuitCondition<T> {
 			default:
 				for (CircuitCondition<T> source : sources) {
 					CircuitCondition.this.whenStr.append("  [ if ").append(source.valueStr)
-							.append(" contains($value) then ");
+							.append(" received then ");
 					for (CircuitCondition<T> target : targets) {
-						whenStr.append("\n check [ ").append(target.valueStr)
+						whenStr.append("\n then check [ ").append(target.valueStr)
 								.append(expectClose ? "isClosed ]" : "isOpen ]");
 					}
 					Predicate<T> sourcePredicate = t -> {
@@ -302,8 +339,19 @@ public class CircuitCondition<T> {
 		 */
 		private static final long serialVersionUID = 1387304757053851098L;
 
-		public ConditionMismatchException(String message) {
-			super(message);
+		public ConditionMismatchException(String message, Object value) {
+			super(String.format(message, String.valueOf(value)));
+		}
+	}
+
+	public static class GateOpenCountOutOfBound extends RuntimeException {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1387304757053851098L;
+
+		public GateOpenCountOutOfBound() {
+			super("Gate opened more than allowed count");
 		}
 	}
 
