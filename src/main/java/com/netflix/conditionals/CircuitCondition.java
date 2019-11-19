@@ -110,24 +110,26 @@ public class CircuitCondition<T> {
 	}
 
 	@SafeVarargs
-	public final void ignore(T... value) {
+	public final CircuitCondition<T> ignore(T... value) {
 		checkEmpty(value, "Empty or null ignore list");
 		Arrays.asList(value).forEach(ignores::add);
+		return this;
 	}
 
 	@SafeVarargs
-	public final void ignore(CircuitCondition<T>... condition) {
+	public final CircuitCondition<T> ignore(CircuitCondition<T>... condition) {
 		checkEmpty(condition, "Empty or null ignore list");
 		Arrays.asList(condition).forEach(c -> {
 			ignores.addAll(c.values);
 		});
+		return this;
 	}
 
 	boolean test(T t) {
 		if (!ignores.contains(t)) {
 			boolean stateChange = false;
 			if (this.values.contains(t) || (isNull && t == null)) {
-				if (this.max > -1 && this.currentOccurence++ > this.max) {
+				if (this.max > -1 && ++this.currentOccurence > this.max) {
 					return false;
 				}
 				if (this.flip) {

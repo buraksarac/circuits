@@ -45,15 +45,15 @@ public class CircuitTest {
 	public void testWhen() {
 		// test 12.054e1 isDouble
 		CircuitCondition<Character> digit = CircuitCondition.between('0', '9');
-		CircuitCondition<Character> decimal = CircuitCondition.of('.').maxOccurence(1);
-		CircuitCondition<Character> exponent = CircuitCondition.of('e').maxOccurence(1);
-		
-		digit.ignore(decimal,exponent);
+		CircuitCondition<Character> decimal = CircuitCondition.flipCircuit('.').maxOccurence(1);
+		CircuitCondition<Character> exponent = CircuitCondition.flipCircuit('e').maxOccurence(1);
+
+		digit.ignore(decimal, exponent);
 		digit.when(decimal).expect().circuitOpen();
 		decimal.when(exponent).expect().circuitOpen();
 
-		char[] chars = "12.0e54e1".toCharArray();
-		for(char c : chars) {
+		char[] chars = "12.0e541".toCharArray();
+		for (char c : chars) {
 			digit.accept(c);
 			decimal.accept(c);
 			exponent.accept(c);
@@ -66,16 +66,24 @@ public class CircuitTest {
 
 	@Test(expected = ConditionMismatchException.class)
 	public void testWhenFail() {
-		// accept 12.054e1 isDouble
-		CircuitCondition<Character> decimal = CircuitCondition.of('.');
-		CircuitCondition<Character> exponent = CircuitCondition.of('e');
+		// test 12.054e1 isDouble
+		CircuitCondition<Character> digit = CircuitCondition.between('0', '9');
+		CircuitCondition<Character> decimal = CircuitCondition.flipCircuit('.').maxOccurence(1);
+		CircuitCondition<Character> exponent = CircuitCondition.flipCircuit('e').maxOccurence(1);
 
+		digit.ignore(decimal, exponent).when(decimal).expect().circuitOpen();
 		decimal.when(exponent).expect().circuitOpen();
+		
 
-		assertTrue(!decimal.open);
-		assertTrue(!exponent.open);
-		System.out.println(decimal.toString());
-		decimal.accept('e');
+		char[] chars = "12.0e5e41".toCharArray();
+		for (char c : chars) {
+			digit.accept(c);
+			decimal.accept(c);
+			exponent.accept(c);
+		}
+		assertTrue(digit.open);
+		assertTrue(decimal.open);
+		assertTrue(exponent.open);
 
 	}
 
@@ -121,7 +129,7 @@ public class CircuitTest {
 		assertTrue(decimal.open);
 		assertTrue(isOpen.get());
 	}
-	
+
 	@Test
 	public void testOnOpen2() {
 		AtomicBoolean isOpen = new AtomicBoolean();
@@ -132,7 +140,7 @@ public class CircuitTest {
 		assertTrue(!decimal.open);
 		assertTrue(!isOpen.get());
 	}
-	
+
 	@Test
 	public void testOnClose() {
 		AtomicBoolean isOpen = new AtomicBoolean();
@@ -145,7 +153,7 @@ public class CircuitTest {
 		assertTrue(!decimal.open);
 		assertTrue(!isOpen.get());
 	}
-	
+
 	@Test
 	public void testOnClose2() {
 		AtomicBoolean isOpen = new AtomicBoolean();
@@ -157,7 +165,7 @@ public class CircuitTest {
 		assertTrue(!decimal.open);
 		assertTrue(!isOpen.get());
 	}
-	
+
 	@Test
 	public void testFlipCircuit() {
 		CircuitCondition<Character> decimal = CircuitCondition.flipCircuit('.');
@@ -168,9 +176,9 @@ public class CircuitTest {
 		assertTrue(!decimal.open);
 		decimal.accept('.');// open circuit
 		assertTrue(decimal.open);
-		
+
 	}
-	
+
 	@Test
 	public void testOpenCircuit() {
 		CircuitCondition<Character> decimal = CircuitCondition.openCircuit('.');
@@ -181,9 +189,9 @@ public class CircuitTest {
 		assertTrue(decimal.open);
 		decimal.accept('e');// close circuit
 		assertTrue(!decimal.open);
-		
+
 	}
-	
+
 	@Test
 	public void testOpenFlipCircuit() {
 		CircuitCondition<Character> decimal = CircuitCondition.openFlipCircuit('.');
@@ -194,7 +202,7 @@ public class CircuitTest {
 		assertTrue(decimal.open);
 		decimal.accept('.');// close circuit
 		assertTrue(!decimal.open);
-		
+
 	}
 
 }
