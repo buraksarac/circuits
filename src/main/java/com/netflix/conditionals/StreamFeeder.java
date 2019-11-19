@@ -11,12 +11,13 @@ public class StreamFeeder<T> {
 	private final BlockingQueue<T> queue;
 
 	private RuntimeException exception;
+	private boolean failed;
 
 	public StreamFeeder(int capacity) {
 		this.capacity = capacity;
 		this.queue = new ArrayBlockingQueue<T>(this.capacity);
 	}
-	
+
 	public void feed(T value) throws InterruptedException {
 		this.queue.offer(value, 200, TimeUnit.MILLISECONDS);
 	}
@@ -30,10 +31,11 @@ public class StreamFeeder<T> {
 	}
 
 	public boolean isFailed() {
-		return this.exception != null;
+		return this.failed;
 	}
 
 	public RuntimeException getExeption() {
+		this.failed = true;
 		return this.exception;
 	}
 
