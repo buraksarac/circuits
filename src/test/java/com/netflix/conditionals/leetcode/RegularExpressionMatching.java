@@ -23,6 +23,5 @@ public class RegularExpressionMatching {
 		String str = "aa";
 		String pattern = "a";
 		
-		for()
 	}
 }
