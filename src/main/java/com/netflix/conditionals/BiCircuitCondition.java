@@ -3,6 +3,7 @@ package com.netflix.conditionals;
 public class BiCircuitCondition<T> extends CircuitCondition<T> {
 
 	private boolean nested;
+	private long stackSize = 0;
 
 	@SafeVarargs
 	BiCircuitCondition(boolean circuitState, T... value) {
@@ -53,7 +54,7 @@ public class BiCircuitCondition<T> extends CircuitCondition<T> {
 			if (stateChange) {
 				if (this.open && this.openConsumer != null) {
 					this.openConsumer.accept(t);
-				} else if (this.closeConsumer != null) {
+				} else if (!this.open && this.closeConsumer != null) {
 					this.closeConsumer.accept(t);
 				}
 			}

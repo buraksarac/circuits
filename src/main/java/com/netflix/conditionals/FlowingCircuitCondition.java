@@ -26,7 +26,7 @@ public class FlowingCircuitCondition<T> extends CircuitCondition<T> {
 			if (stateChange) {
 				if (this.open && this.openConsumer != null) {
 					this.openConsumer.accept(t);
-				} else if (this.closeConsumer != null) {
+				} else if (!this.open && this.closeConsumer != null) {
 					this.closeConsumer.accept(t);
 				}
 			}

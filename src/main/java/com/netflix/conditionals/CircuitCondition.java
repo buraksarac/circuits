@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 public abstract class CircuitCondition<T> {
 
 	LinkedList<T> values = new LinkedList<>();
-	long stackSize = 0;
 	Set<T> ignores = new HashSet<>();
 	boolean isNull = false;
 	boolean open = false;
