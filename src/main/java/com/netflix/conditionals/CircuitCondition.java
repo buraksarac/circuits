@@ -2,6 +2,7 @@ package com.netflix.conditionals;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -10,7 +11,8 @@ import java.util.stream.Collectors;
 
 public class CircuitCondition<T> {
 
-	private Set<T> values = new HashSet<>();
+	private LinkedList<T> values = new LinkedList<>();
+	private long stackSize = 0;
 	private Set<T> ignores = new HashSet<>();
 	private boolean isNull = false;
 	boolean open = false;
@@ -22,11 +24,14 @@ public class CircuitCondition<T> {
 	private boolean flip;
 	private long max = -1;
 	private long currentOccurence = 0;
+	private boolean biCircuit;
+	private boolean nested;
 
 	@SafeVarargs
-	CircuitCondition(boolean circuitState, boolean flip, T... value) {
+	CircuitCondition(boolean circuitState, boolean flip, boolean biCircuit, T... value) {
 		this.open = circuitState;
 		this.flip = flip;
+		this.biCircuit = biCircuit;
 		isNull = value == null;
 		if (!isNull) {
 			if (value.length == 0) {
@@ -42,22 +47,26 @@ public class CircuitCondition<T> {
 
 	@SafeVarargs
 	public static <A> CircuitCondition<A> of(A... value) {
-		return new CircuitCondition<>(false, false, value);
+		return new CircuitCondition<>(false, false, false, value);
 	}
 
 	@SafeVarargs
 	public static <A> CircuitCondition<A> flipCircuit(A... value) {
-		return new CircuitCondition<>(false, true, value);
+		return new CircuitCondition<>(false, true, false, value);
 	}
 
 	@SafeVarargs
 	public static <A> CircuitCondition<A> openCircuit(A... value) {
-		return new CircuitCondition<>(true, false, value);
+		return new CircuitCondition<>(true, false, false, value);
 	}
 
 	@SafeVarargs
 	public static <A> CircuitCondition<A> openFlipCircuit(A... value) {
-		return new CircuitCondition<>(true, true, value);
+		return new CircuitCondition<>(true, true, false, value);
+	}
+
+	public static <A> CircuitCondition<A> biCircuit(A openValue, A closeValue) {
+		return new CircuitCondition<>(false, true, true, openValue, closeValue);
 	}
 
 	public static CircuitCondition<Integer> between(int startInclusive, int endInclusive) {
@@ -69,7 +78,7 @@ public class CircuitCondition<T> {
 		for (int i = startInclusive; i <= endInclusive; i++) {
 			vals[counter++] = i;
 		}
-		return new CircuitCondition<Integer>(false, false, vals);
+		return new CircuitCondition<Integer>(false, false, false, vals);
 	}
 
 	public static CircuitCondition<Character> between(char startInclusive, char endInclusive) {
@@ -81,7 +90,7 @@ public class CircuitCondition<T> {
 		for (int i = startInclusive; i <= endInclusive; i++) {
 			vals[counter++] = (char) i;
 		}
-		return new CircuitCondition<Character>(false, false, vals);
+		return new CircuitCondition<Character>(false, false, false, vals);
 	}
 
 	@SafeVarargs
@@ -94,17 +103,31 @@ public class CircuitCondition<T> {
 		return this;
 	}
 
+	public CircuitCondition<T> nested() {
+		this.nested = true;
+		return this;
+	}
+
 	public CircuitCondition<T> onClose(Consumer<T> consumer) {
 		this.closeConsumer = consumer;
 		return this;
 	}
 
+	public void open() {
+		this.open = true;
+	}
+
+	public void close() {
+		this.open = false;
+	}
+
+	public boolean isOpen() {
+		return this.open;
+	}
+
 	public CircuitCondition<T> maxOccurence(long max) {
-		this.whenStr.append(" AND [max occurence  of ")
-		.append(this.valueStr)
-		.append(" less or equals to ")
-		.append(max)
-		.append(" ] ");
+		this.whenStr.append(" AND [max occurence  of ").append(this.valueStr).append(" less or equals to ").append(max)
+				.append(" ] ");
 		this.max = max;
 		return this;
 	}
@@ -126,6 +149,7 @@ public class CircuitCondition<T> {
 	}
 
 	boolean test(T t) {
+
 		if (!ignores.contains(t)) {
 			boolean stateChange = false;
 			if (this.values.contains(t) || (isNull && t == null)) {
@@ -133,13 +157,41 @@ public class CircuitCondition<T> {
 					return false;
 				}
 				if (this.flip) {
-					this.open = !open;
-					stateChange = true;
+					if (this.biCircuit) {
+						if (this.open) {
+							if (this.values.getLast().equals(t)) {
+								if (!nested || this.stackSize == 0l) {
+									this.open = !open;
+									stateChange = true;
+								} else {
+									if (--this.stackSize < 0) {
+										return false;
+									}
+								}
+
+							} else if (nested) {
+								this.stackSize++;
+								stateChange = true;
+							}
+
+						} else {
+							if (this.values.getFirst().equals(t)) {
+								this.open = !open;
+								stateChange = true;
+							} else {
+								return false;
+							}
+						}
+					} else {
+						this.open = !open;
+						stateChange = true;
+					}
+
 				} else if (!this.open) {
 					this.open = !open;
 					stateChange = true;
 				}
-			} else if (!this.flip && this.open && (!this.values.contains(t) || (isNull && t != null))) {
+			} else if (!this.flip && this.open) {
 				this.open = !open;
 				stateChange = true;
 			}
@@ -223,8 +275,7 @@ public class CircuitCondition<T> {
 
 			default:
 				for (CircuitCondition<T> source : sources) {
-					CircuitCondition.this.whenStr.append("  [ if ").append(source.valueStr)
-							.append(" received then ");
+					CircuitCondition.this.whenStr.append("  [ if ").append(source.valueStr).append(" received then ");
 					for (CircuitCondition<T> target : targets) {
 						whenStr.append("\n then check [ ").append(target.valueStr)
 								.append(expectClose ? "isClosed ]" : "isOpen ]");
