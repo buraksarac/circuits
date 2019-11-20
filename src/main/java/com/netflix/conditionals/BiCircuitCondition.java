@@ -1,5 +1,8 @@
 package com.netflix.conditionals;
 
+import java.util.List;
+import java.util.function.Consumer;
+
 public class BiCircuitCondition<T> extends CircuitCondition<T> {
 
 	private boolean nested;
@@ -17,8 +20,10 @@ public class BiCircuitCondition<T> extends CircuitCondition<T> {
 
 	@Override
 	protected boolean test(T t) {
+		List<Consumer<T>> consumers = open ? whileOpenConsumers : whileCloseConsumers;
+		boolean stateChange = false;
 		if (!ignores.contains(t)) {
-			boolean stateChange = false;
+
 			if (this.values.contains(t) || (isNull && t == null)) {
 				if (this.max > -1 && ++this.currentOccurence > this.max) {
 					return false;
@@ -51,16 +56,12 @@ public class BiCircuitCondition<T> extends CircuitCondition<T> {
 				}
 
 			}
-			if (stateChange) {
-				if (this.open) {
-					this.openConsumers.forEach(c -> c.accept(t));
-				} else {
-					this.closeConsumers.forEach(c -> c.accept(t));
-				}
-			}
 
 		}
+		consumers = stateChange ? open ? openConsumers : closeConsumers : consumers;
 
-		return this.predicate.test(t);
+		consumers.forEach(c -> c.accept(t));
+
+		return stateChange ? stateChange : this.predicate.test(t);
 	}
 }

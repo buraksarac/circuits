@@ -21,6 +21,8 @@ public abstract class CircuitCondition<T> {
 	private StringBuilder whenStr = new StringBuilder("WHEN TRUE ");
 	List<Consumer<T>> openConsumers = new ArrayList<>();
 	List<Consumer<T>> closeConsumers = new ArrayList<>();
+	List<Consumer<T>> whileOpenConsumers = new ArrayList<>();
+	List<Consumer<T>> whileCloseConsumers = new ArrayList<>();
 	long max = -1;
 	long currentOccurence = 0;
 	boolean biCircuit;
@@ -106,6 +108,16 @@ public abstract class CircuitCondition<T> {
 
 	public CircuitCondition<T> onClose(Consumer<T> consumer) {
 		this.closeConsumers.add(consumer);
+		return this;
+	}
+
+	public CircuitCondition<T> whileOpen(Consumer<T> consumer) {
+		this.whileOpenConsumers.add(consumer);
+		return this;
+	}
+
+	public CircuitCondition<T> whileClosed(Consumer<T> consumer) {
+		this.whileCloseConsumers.add(consumer);
 		return this;
 	}
 
