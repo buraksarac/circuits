@@ -9,29 +9,25 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class CircuitCondition<T> {
+public abstract class CircuitCondition<T> {
 
-	private LinkedList<T> values = new LinkedList<>();
-	private long stackSize = 0;
-	private Set<T> ignores = new HashSet<>();
-	private boolean isNull = false;
+	LinkedList<T> values = new LinkedList<>();
+	long stackSize = 0;
+	Set<T> ignores = new HashSet<>();
+	boolean isNull = false;
 	boolean open = false;
-	private Predicate<T> predicate = t -> true;
+	Predicate<T> predicate = t -> true;
 	private StringBuilder valueStr = new StringBuilder();
 	private StringBuilder whenStr = new StringBuilder("WHEN TRUE ");
-	private Consumer<T> openConsumer;
-	private Consumer<T> closeConsumer;
-	private boolean flip;
-	private long max = -1;
-	private long currentOccurence = 0;
-	private boolean biCircuit;
-	private boolean nested;
+	Consumer<T> openConsumer;
+	Consumer<T> closeConsumer;
+	long max = -1;
+	long currentOccurence = 0;
+	boolean biCircuit;
 
 	@SafeVarargs
-	CircuitCondition(boolean circuitState, boolean flip, boolean biCircuit, T... value) {
+	CircuitCondition(boolean circuitState, T... value) {
 		this.open = circuitState;
-		this.flip = flip;
-		this.biCircuit = biCircuit;
 		isNull = value == null;
 		if (!isNull) {
 			if (value.length == 0) {
@@ -46,30 +42,35 @@ public class CircuitCondition<T> {
 	}
 
 	@SafeVarargs
-	public static <A> CircuitCondition<A> of(A... value) {
-		return new CircuitCondition<>(false, false, false, value);
+	public static <A> FlowingCircuitCondition<A> of(A... value) {
+		return new FlowingCircuitCondition<A>(false, value);
 	}
 
 	@SafeVarargs
-	public static <A> CircuitCondition<A> flipCircuit(A... value) {
-		return new CircuitCondition<>(false, true, false, value);
+	public static <A> FlowingCircuitCondition<A> flowing(A... value) {
+		return new FlowingCircuitCondition<A>(false, value);
 	}
 
 	@SafeVarargs
-	public static <A> CircuitCondition<A> openCircuit(A... value) {
-		return new CircuitCondition<>(true, false, false, value);
+	public static <A> FlipCircuitCondition<A> flipping(A... value) {
+		return new FlipCircuitCondition<A>(false, value);
 	}
 
 	@SafeVarargs
-	public static <A> CircuitCondition<A> openFlipCircuit(A... value) {
-		return new CircuitCondition<>(true, true, false, value);
+	public static <A> ImmutableCircuitCondition<A> immutable(boolean state, A... value) {
+		return new ImmutableCircuitCondition<A>(state, value);
 	}
 
-	public static <A> CircuitCondition<A> biCircuit(A openValue, A closeValue) {
-		return new CircuitCondition<>(false, true, true, openValue, closeValue);
+	@SafeVarargs
+	public static <A> SinglePassCircuitCondition<A> singlePass(A... value) {
+		return new SinglePassCircuitCondition<A>(false, value);
 	}
 
-	public static CircuitCondition<Integer> between(int startInclusive, int endInclusive) {
+	public static <A> BiCircuitCondition<A> biCircuit(A openValue, A closeValue) {
+		return new BiCircuitCondition<A>(false, openValue, closeValue);
+	}
+
+	public static FlowingCircuitCondition<Integer> between(int startInclusive, int endInclusive) {
 		if (endInclusive <= startInclusive) {
 			throw new IllegalArgumentException("End value <= start value");
 		}
@@ -78,10 +79,10 @@ public class CircuitCondition<T> {
 		for (int i = startInclusive; i <= endInclusive; i++) {
 			vals[counter++] = i;
 		}
-		return new CircuitCondition<Integer>(false, false, false, vals);
+		return new FlowingCircuitCondition<Integer>(false, vals);
 	}
 
-	public static CircuitCondition<Character> between(char startInclusive, char endInclusive) {
+	public static FlowingCircuitCondition<Character> between(char startInclusive, char endInclusive) {
 		if (endInclusive <= startInclusive) {
 			throw new IllegalArgumentException("End value <= start value");
 		}
@@ -90,7 +91,7 @@ public class CircuitCondition<T> {
 		for (int i = startInclusive; i <= endInclusive; i++) {
 			vals[counter++] = (char) i;
 		}
-		return new CircuitCondition<Character>(false, false, false, vals);
+		return new FlowingCircuitCondition<Character>(false, vals);
 	}
 
 	@SafeVarargs
@@ -103,22 +104,19 @@ public class CircuitCondition<T> {
 		return this;
 	}
 
-	public CircuitCondition<T> nested() {
-		this.nested = true;
-		return this;
-	}
-
 	public CircuitCondition<T> onClose(Consumer<T> consumer) {
 		this.closeConsumer = consumer;
 		return this;
 	}
 
-	public void open() {
+	public CircuitCondition<T> open() {
 		this.open = true;
+		return this;
 	}
 
-	public void close() {
+	public CircuitCondition<T> close() {
 		this.open = false;
+		return this;
 	}
 
 	public boolean isOpen() {
@@ -148,65 +146,7 @@ public class CircuitCondition<T> {
 		return this;
 	}
 
-	boolean test(T t) {
-
-		if (!ignores.contains(t)) {
-			boolean stateChange = false;
-			if (this.values.contains(t) || (isNull && t == null)) {
-				if (this.max > -1 && ++this.currentOccurence > this.max) {
-					return false;
-				}
-				if (this.flip) {
-					if (this.biCircuit) {
-						if (this.open) {
-							if (this.values.getLast().equals(t)) {
-								if (!nested || this.stackSize == 0l) {
-									this.open = !open;
-									stateChange = true;
-								} else {
-									if (--this.stackSize < 0) {
-										return false;
-									}
-								}
-
-							} else if (nested) {
-								this.stackSize++;
-								stateChange = true;
-							}
-
-						} else {
-							if (this.values.getFirst().equals(t)) {
-								this.open = !open;
-								stateChange = true;
-							} else {
-								return false;
-							}
-						}
-					} else {
-						this.open = !open;
-						stateChange = true;
-					}
-
-				} else if (!this.open) {
-					this.open = !open;
-					stateChange = true;
-				}
-			} else if (!this.flip && this.open) {
-				this.open = !open;
-				stateChange = true;
-			}
-			if (stateChange) {
-				if (this.open && this.openConsumer != null) {
-					this.openConsumer.accept(t);
-				} else if (this.closeConsumer != null) {
-					this.closeConsumer.accept(t);
-				}
-			}
-
-		}
-
-		return this.predicate.test(t);
-	}
+	protected abstract boolean test(T t);
 
 	void accept(T t) {
 		boolean result = this.test(t);
