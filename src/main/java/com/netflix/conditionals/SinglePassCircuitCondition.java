@@ -15,9 +15,7 @@ public class SinglePassCircuitCondition<T> extends CircuitCondition<T> {
 					return false;
 				}
 				this.open = !open;
-				if (this.openConsumer != null) {
-					this.openConsumer.accept(t);
-				}
+				this.openConsumers.forEach(c -> c.accept(t));
 			}
 		}
 

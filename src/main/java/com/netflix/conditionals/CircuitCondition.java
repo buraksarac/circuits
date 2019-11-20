@@ -1,5 +1,6 @@
 package com.netflix.conditionals;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -18,8 +19,8 @@ public abstract class CircuitCondition<T> {
 	Predicate<T> predicate = t -> true;
 	private StringBuilder valueStr = new StringBuilder();
 	private StringBuilder whenStr = new StringBuilder("WHEN TRUE ");
-	Consumer<T> openConsumer;
-	Consumer<T> closeConsumer;
+	List<Consumer<T>> openConsumers = new ArrayList<>();
+	List<Consumer<T>> closeConsumers = new ArrayList<>();
 	long max = -1;
 	long currentOccurence = 0;
 	boolean biCircuit;
@@ -99,12 +100,12 @@ public abstract class CircuitCondition<T> {
 	}
 
 	public CircuitCondition<T> onOpen(Consumer<T> consumer) {
-		this.openConsumer = consumer;
+		this.openConsumers.add(consumer);
 		return this;
 	}
 
 	public CircuitCondition<T> onClose(Consumer<T> consumer) {
-		this.closeConsumer = consumer;
+		this.closeConsumers.add(consumer);
 		return this;
 	}
 
