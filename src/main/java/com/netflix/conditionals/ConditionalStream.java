@@ -19,7 +19,7 @@ public class ConditionalStream<T> {
 
 	}
 
-	public Stream<T> audit(NestedCondition<T> audit) {
+	public Stream<T> audit(Circuits<T> audit) {
 		Objects.requireNonNull(audit);
 		ExecutorService executor = Executors.newSingleThreadExecutor();
 		try (AutoCloseable ac = executor::shutdown) {
@@ -58,9 +58,9 @@ public class ConditionalStream<T> {
 
 		private static final class OfRef<T> extends InfiniteSupplyingSpliterator<T> {
 			final StreamFeeder<T> feeder;
-			final NestedCondition<T> audit;
+			final Circuits<T> audit;
 
-			OfRef(long size, StreamFeeder<T> feeder, NestedCondition<T> audit) {
+			OfRef(long size, StreamFeeder<T> feeder, Circuits<T> audit) {
 				super(size);
 				this.feeder = feeder;
 				this.audit = audit;
@@ -78,7 +78,7 @@ public class ConditionalStream<T> {
 					}
 					return false;
 				}
-				audit.audit(value);
+				audit.accept(value);
 				action.accept(value);
 				return true;
 

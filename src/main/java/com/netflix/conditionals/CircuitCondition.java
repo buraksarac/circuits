@@ -44,35 +44,35 @@ public abstract class CircuitCondition<T> {
 	}
 
 	@SafeVarargs
-	public static <A> FlowingCircuitCondition<A> of(A... value) {
+	static <A> FlowingCircuitCondition<A> of(A... value) {
 		return new FlowingCircuitCondition<A>(false, value);
 	}
 
 	@SafeVarargs
-	public static <A> FlowingCircuitCondition<A> flowing(A... value) {
+	static <A> FlowingCircuitCondition<A> flowing(A... value) {
 		return new FlowingCircuitCondition<A>(false, value);
 	}
 
 	@SafeVarargs
-	public static <A> FlipCircuitCondition<A> flipping(A... value) {
+	static <A> FlipCircuitCondition<A> flipping(A... value) {
 		return new FlipCircuitCondition<A>(false, value);
 	}
 
 	@SafeVarargs
-	public static <A> ImmutableCircuitCondition<A> immutable(boolean state, A... value) {
+	static <A> ImmutableCircuitCondition<A> immutable(boolean state, A... value) {
 		return new ImmutableCircuitCondition<A>(state, value);
 	}
 
 	@SafeVarargs
-	public static <A> SinglePassCircuitCondition<A> singlePass(A... value) {
+	static <A> SinglePassCircuitCondition<A> singlePass(A... value) {
 		return new SinglePassCircuitCondition<A>(false, value);
 	}
 
-	public static <A> BiCircuitCondition<A> biCircuit(A openValue, A closeValue) {
+	static <A> BiCircuitCondition<A> biCircuit(A openValue, A closeValue) {
 		return new BiCircuitCondition<A>(false, openValue, closeValue);
 	}
 
-	public static FlowingCircuitCondition<Integer> between(int startInclusive, int endInclusive) {
+	static FlowingCircuitCondition<Integer> between(int startInclusive, int endInclusive) {
 		if (endInclusive <= startInclusive) {
 			throw new IllegalArgumentException("End value <= start value");
 		}
@@ -84,7 +84,7 @@ public abstract class CircuitCondition<T> {
 		return new FlowingCircuitCondition<Integer>(false, vals);
 	}
 
-	public static FlowingCircuitCondition<Character> between(char startInclusive, char endInclusive) {
+	static FlowingCircuitCondition<Character> between(char startInclusive, char endInclusive) {
 		if (endInclusive <= startInclusive) {
 			throw new IllegalArgumentException("End value <= start value");
 		}
@@ -133,6 +133,10 @@ public abstract class CircuitCondition<T> {
 
 	public boolean isOpen() {
 		return this.open;
+	}
+
+	public boolean isClosed() {
+		return !this.open;
 	}
 
 	public CircuitCondition<T> maxOccurence(long max) {
