@@ -1,12 +1,12 @@
-package com.netflix.conditionals;
+package org.qunix.circuits;
 
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
-
-import com.netflix.conditionals.CircuitCondition.ConditionMismatchException;
+import org.qunix.circuits.CircuitCondition;
+import org.qunix.circuits.CircuitCondition.ConditionMismatchException;
 
 public class CircuitTest {
 

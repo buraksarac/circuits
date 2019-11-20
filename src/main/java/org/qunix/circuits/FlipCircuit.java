@@ -1,4 +1,4 @@
-package com.netflix.conditionals;
+package org.qunix.circuits;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -16,7 +16,11 @@ public class FlipCircuit<T> extends CircuitCondition<T> {
 		if (!ignores.contains(t)) {
 			if (this.values.contains(t) || (isNull && t == null)) {
 				if (this.max > -1 && ++this.currentOccurence > this.max) {
-					return false;
+					if(this.behaviour.equals(FailBehaviour.FAIL)){
+						return false;
+					}else {
+						this.open = false;
+					}
 				}
 				this.open = !open;
 				List<Consumer<T>> consumers = open ? openConsumers : closeConsumers;

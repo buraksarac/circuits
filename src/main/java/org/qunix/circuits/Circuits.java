@@ -1,4 +1,4 @@
-package com.netflix.conditionals;
+package org.qunix.circuits;
 
 import java.util.function.Consumer;
 

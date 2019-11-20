@@ -1,4 +1,4 @@
-package com.netflix.conditionals;
+package org.qunix.circuits;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -18,7 +18,11 @@ public class FlowingCircuit<T> extends CircuitCondition<T> {
 			
 			if (this.values.contains(t) || (isNull && t == null)) {
 				if (this.max > -1 && ++this.currentOccurence > this.max) {
-					return false;
+					if(this.behaviour.equals(FailBehaviour.FAIL)){
+						return false;
+					}else {
+						this.open = false;
+					}
 				}
 				if (!this.open) {
 					this.open = !open;

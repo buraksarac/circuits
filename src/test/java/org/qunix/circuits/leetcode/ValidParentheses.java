@@ -1,10 +1,9 @@
-package com.netflix.conditionals.leetcode;
+package org.qunix.circuits.leetcode;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import com.netflix.conditionals.CircuitCondition;
-import com.netflix.conditionals.Circuits;
+import org.qunix.circuits.CircuitCondition;
+import org.qunix.circuits.Circuits;
 
 /**
  * https://leetcode.com/problems/valid-parentheses/

@@ -1,4 +1,4 @@
-package com.netflix.conditionals;
+package org.qunix.circuits;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -32,7 +32,11 @@ public class MultiBiCircuit<T> extends CircuitCondition<T> {
 
 			if (this.values.contains(t) || (isNull && t == null)) {
 				if (this.max > -1 && ++this.currentOccurence > this.max) {
-					return false;
+					if(this.behaviour.equals(FailBehaviour.FAIL)){
+						return false;
+					}else {
+						this.open = false;
+					}
 				}
 				int index = this.values.indexOf(t);
 				int stackIndex = index >>> 1;

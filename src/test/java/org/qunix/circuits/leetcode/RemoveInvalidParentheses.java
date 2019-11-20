@@ -1,13 +1,12 @@
-package com.netflix.conditionals.leetcode;
+package org.qunix.circuits.leetcode;
 
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
-
-import com.netflix.conditionals.CircuitCondition;
-import com.netflix.conditionals.Circuits;
+import org.qunix.circuits.CircuitCondition;
+import org.qunix.circuits.Circuits;
 
 /**
  * 

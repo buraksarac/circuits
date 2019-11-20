@@ -1,4 +1,4 @@
-package com.netflix.conditionals;
+package org.qunix.circuits;
 
 public class ImmutableCircuit<T> extends CircuitCondition<T> {
 

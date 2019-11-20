@@ -1,4 +1,4 @@
-package com.netflix.conditionals;
+package org.qunix.circuits;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +26,10 @@ public abstract class CircuitCondition<T> {
 	long max = -1;
 	long currentOccurence = 0;
 	boolean biCircuit;
+	FailBehaviour behaviour = FailBehaviour.FAIL;
+	public enum FailBehaviour{
+		FAIL,CLOSE;
+	}
 
 	@SafeVarargs
 	CircuitCondition(boolean circuitState, T... value) {
@@ -144,10 +148,11 @@ public abstract class CircuitCondition<T> {
 		return !this.open;
 	}
 
-	public CircuitCondition<T> maxOccurence(long max) {
+	public CircuitCondition<T> maxOccurence(long max, FailBehaviour behaviour) {
 		this.whenStr.append(" AND [max occurence  of ").append(this.valueStr).append(" less or equals to ").append(max)
 				.append(" ] ");
 		this.max = max;
+		this.behaviour = behaviour;
 		return this;
 	}
 

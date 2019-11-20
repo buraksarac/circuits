@@ -1,4 +1,4 @@
-package com.netflix.conditionals;
+package org.qunix.circuits;
 
 public interface Streamable<T> extends AutoCloseable {
 
