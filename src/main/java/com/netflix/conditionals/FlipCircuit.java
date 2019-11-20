@@ -3,27 +3,28 @@ package com.netflix.conditionals;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class SinglePassCircuitCondition<T> extends CircuitCondition<T> {
+public class FlipCircuit<T> extends CircuitCondition<T> {
 
 	@SafeVarargs
-	SinglePassCircuitCondition(boolean circuitState, T... value) {
+	FlipCircuit(boolean circuitState, T... value) {
 		super(circuitState, value);
 	}
 
 	@Override
 	protected boolean test(T t) {
-
+		
 		if (!ignores.contains(t)) {
 			if (this.values.contains(t) || (isNull && t == null)) {
-				if (this.open) {
+				if (this.max > -1 && ++this.currentOccurence > this.max) {
 					return false;
 				}
 				this.open = !open;
-				this.openConsumers.forEach(c -> c.accept(t));
+				List<Consumer<T>> consumers = open ? openConsumers : closeConsumers;
+				consumers.forEach(c -> c.accept(t));
 				return true;
+
 			}
 		}
-
 		List<Consumer<T>> consumers = open ? whileOpenConsumers : whileCloseConsumers;
 		consumers.forEach(c -> c.accept(t));
 

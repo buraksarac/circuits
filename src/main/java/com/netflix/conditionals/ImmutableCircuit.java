@@ -1,9 +1,9 @@
 package com.netflix.conditionals;
 
-public class ImmutableCircuitCondition<T> extends CircuitCondition<T> {
+public class ImmutableCircuit<T> extends CircuitCondition<T> {
 
 	@SafeVarargs
-	ImmutableCircuitCondition(boolean circuitState, T... value) {
+	ImmutableCircuit(boolean circuitState, T... value) {
 		super(circuitState, value);
 	}
 

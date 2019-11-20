@@ -17,7 +17,7 @@ public abstract class CircuitCondition<T> {
 	boolean isNull = false;
 	boolean open = false;
 	Predicate<T> predicate = t -> true;
-	private StringBuilder valueStr = new StringBuilder();
+	StringBuilder valueStr = new StringBuilder();
 	private StringBuilder whenStr = new StringBuilder("WHEN TRUE ");
 	List<Consumer<T>> openConsumers = new ArrayList<>();
 	List<Consumer<T>> closeConsumers = new ArrayList<>();
@@ -44,35 +44,40 @@ public abstract class CircuitCondition<T> {
 	}
 
 	@SafeVarargs
-	static <A> FlowingCircuitCondition<A> of(A... value) {
-		return new FlowingCircuitCondition<A>(false, value);
+	static <A> FlowingCircuit<A> of(A... value) {
+		return new FlowingCircuit<A>(false, value);
 	}
 
 	@SafeVarargs
-	static <A> FlowingCircuitCondition<A> flowing(A... value) {
-		return new FlowingCircuitCondition<A>(false, value);
+	static <A> FlowingCircuit<A> flowing(A... value) {
+		return new FlowingCircuit<A>(false, value);
 	}
 
 	@SafeVarargs
-	static <A> FlipCircuitCondition<A> flipping(A... value) {
-		return new FlipCircuitCondition<A>(false, value);
+	static <A> FlipCircuit<A> flipping(A... value) {
+		return new FlipCircuit<A>(false, value);
 	}
 
 	@SafeVarargs
-	static <A> ImmutableCircuitCondition<A> immutable(boolean state, A... value) {
-		return new ImmutableCircuitCondition<A>(state, value);
+	static <A> ImmutableCircuit<A> immutable(boolean state, A... value) {
+		return new ImmutableCircuit<A>(state, value);
 	}
 
 	@SafeVarargs
-	static <A> SinglePassCircuitCondition<A> singlePass(A... value) {
-		return new SinglePassCircuitCondition<A>(false, value);
+	static <A> SinglePassCircuit<A> singlePass(A... value) {
+		return new SinglePassCircuit<A>(false, value);
 	}
 
-	static <A> BiCircuitCondition<A> biCircuit(A openValue, A closeValue) {
-		return new BiCircuitCondition<A>(false, openValue, closeValue);
+	static <A> BiCircuit<A> biCircuit(A openValue, A closeValue) {
+		return new BiCircuit<A>(false, openValue, closeValue);
+	}
+	
+	@SafeVarargs
+	static <A> MultiBiCircuit<A> multiBiCircuit(A... value) {
+		return new MultiBiCircuit<A>(false, value);
 	}
 
-	static FlowingCircuitCondition<Integer> between(int startInclusive, int endInclusive) {
+	static FlowingCircuit<Integer> between(int startInclusive, int endInclusive) {
 		if (endInclusive <= startInclusive) {
 			throw new IllegalArgumentException("End value <= start value");
 		}
@@ -81,10 +86,10 @@ public abstract class CircuitCondition<T> {
 		for (int i = startInclusive; i <= endInclusive; i++) {
 			vals[counter++] = i;
 		}
-		return new FlowingCircuitCondition<Integer>(false, vals);
+		return new FlowingCircuit<Integer>(false, vals);
 	}
 
-	static FlowingCircuitCondition<Character> between(char startInclusive, char endInclusive) {
+	static FlowingCircuit<Character> between(char startInclusive, char endInclusive) {
 		if (endInclusive <= startInclusive) {
 			throw new IllegalArgumentException("End value <= start value");
 		}
@@ -93,7 +98,7 @@ public abstract class CircuitCondition<T> {
 		for (int i = startInclusive; i <= endInclusive; i++) {
 			vals[counter++] = (char) i;
 		}
-		return new FlowingCircuitCondition<Character>(false, vals);
+		return new FlowingCircuit<Character>(false, vals);
 	}
 
 	@SafeVarargs
@@ -342,7 +347,7 @@ public abstract class CircuitCondition<T> {
 
 	}
 
-	public static class ConditionMismatchException extends RuntimeException {
+	public static class ConditionMismatchException extends IllegalStateException {
 		/**
 		 * 
 		 */

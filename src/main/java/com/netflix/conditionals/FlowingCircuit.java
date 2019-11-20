@@ -3,10 +3,10 @@ package com.netflix.conditionals;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class FlowingCircuitCondition<T> extends CircuitCondition<T> {
+public class FlowingCircuit<T> extends CircuitCondition<T> {
 
 	@SafeVarargs
-	FlowingCircuitCondition(boolean circuitState, T... value) {
+	FlowingCircuit(boolean circuitState, T... value) {
 		super(circuitState, value);
 	}
 

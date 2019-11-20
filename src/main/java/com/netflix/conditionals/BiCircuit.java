@@ -3,17 +3,21 @@ package com.netflix.conditionals;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class BiCircuitCondition<T> extends CircuitCondition<T> {
+public class BiCircuit<T> extends CircuitCondition<T> {
 
 	private boolean nested;
 	private long stackSize = 0;
+	private T openValue;
+	private T closeValue;
 
 	@SafeVarargs
-	BiCircuitCondition(boolean circuitState, T... value) {
+	BiCircuit(boolean circuitState, T... value) {
 		super(circuitState, value);
+		this.openValue = this.values.getFirst();
+		this.closeValue = this.values.getLast();
 	}
 
-	public BiCircuitCondition<T> nested() {
+	public BiCircuit<T> nested() {
 		this.nested = true;
 		return this;
 	}
@@ -29,16 +33,15 @@ public class BiCircuitCondition<T> extends CircuitCondition<T> {
 					return false;
 				}
 				if (this.open) {
-					if (this.values.getLast().equals(t)) {
+					if (closeValue.equals(t)) {
+						stateChange = true;
 						if (!nested || this.stackSize == 0l) {
 							this.open = !open;
-							stateChange = true;
 						} else {
 							if (--this.stackSize < 0) {
 								return false;
 							}
 						}
-
 					} else if (nested) {
 						this.stackSize++;
 						stateChange = true;
@@ -47,7 +50,7 @@ public class BiCircuitCondition<T> extends CircuitCondition<T> {
 					}
 
 				} else {
-					if (this.values.getFirst().equals(t)) {
+					if (openValue.equals(t)) {
 						this.open = !open;
 						stateChange = true;
 					} else {
