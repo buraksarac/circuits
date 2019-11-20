@@ -277,5 +277,31 @@ public class CircuitTest {
 		biCircuit.accept('}');// close circuit
 
 	}
+	
+	@Test
+	public void testWhileOpen() {
+		CircuitCondition<Character> string = CircuitCondition.flipping('"');
+		StringBuilder sb = new StringBuilder();
+		string.whileOpen(sb::append);
+		char[] testValue = "\"this is a test\"".toCharArray();
+		for(char c : testValue) {
+			string.accept(c);
+		}
+		assertTrue(!string.open);
+		assertTrue("this is a test".equals(sb.toString()));
+	}
+	
+	@Test
+	public void testWhileClose() {
+		CircuitCondition<Character> string = CircuitCondition.flipping('"');
+		StringBuilder sb = new StringBuilder();
+		string.whileClosed(sb::append);
+		char[] testValue = "outSideString\"this is a test\"".toCharArray();
+		for(char c : testValue) {
+			string.accept(c);
+		}
+		assertTrue(!string.open);
+		assertTrue("outSideString".equals(sb.toString()));
+	}
 
 }
