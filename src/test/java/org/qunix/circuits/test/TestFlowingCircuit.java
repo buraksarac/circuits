@@ -20,15 +20,15 @@ public class TestFlowingCircuit {
 	@Test
 	public void test() {
 
-		Circuit<Character> circuit = Circuits.flowing('a').maxOccurence(2, FailBehaviour.CLOSE);
+		Circuit<Character> circuit = Circuits.flowing('a').max(2, FailBehaviour.CLOSE);
 		circuit.accept('b');
 		circuit.assertClosed();
 		circuit.accept('a');
 		circuit.assertOpen();
 		circuit.accept('a');
-		circuit.assertOpen();
-		circuit.accept('a');
 		circuit.assertClosed();
+		circuit.accept('a');
+		circuit.assertOpen();
 		circuit.accept('b');
 		circuit.assertClosed();
 

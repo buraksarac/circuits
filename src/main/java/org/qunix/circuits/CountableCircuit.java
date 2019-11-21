@@ -65,9 +65,27 @@ public abstract class CountableCircuit<T> extends Circuit<T> {
 	 * @param behaviour behaviour
 	 * @return CircuitCondition<T>
 	 */
-	public Circuit<T> maxOccurence(long max, FailBehaviour behaviour) {
+	public Circuit<T> max(long max, FailBehaviour behaviour) {
 		this.maxOccurence = max;
 		this.occurenceFailBehaviour = behaviour;
+		return this;
+	}
+	
+	/**
+	 *
+	 * maxOccurence method: During the stream any valid parameter increases this
+	 * value, defailt fail behaviour is closing circuit, otherwise use overloaded method
+	 *
+	 * 
+	 *
+	 *
+	 * @param max       -1 is inf
+	 * @param behaviour behaviour
+	 * @return CircuitCondition<T>
+	 */
+	public Circuit<T> max(long max) {
+		this.maxOccurence = max;
+		this.occurenceFailBehaviour = FailBehaviour.CLOSE;
 		return this;
 	}
 
@@ -127,13 +145,14 @@ public abstract class CountableCircuit<T> extends Circuit<T> {
 	 * @return boolean
 	 */
 	private boolean testOccurence(T t, boolean isValid) {
-		if (isValid && this.maxOccurence > -1 && ++this.currentOccurence > this.maxOccurence) {
+		if (isValid && this.maxOccurence > -1 && ++this.currentOccurence >= this.maxOccurence) {
 			if (this.occurenceFailBehaviour.equals(FailBehaviour.FAIL)) {
 				return false;
 			} else {
 				this.open = false;
 				this.stateChange = true;
 				failureCount++;
+				this.currentOccurence = 0;
 			}
 		}
 		return true;

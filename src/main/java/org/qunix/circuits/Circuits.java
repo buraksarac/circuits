@@ -175,6 +175,17 @@ public class Circuits<T> implements Consumer<T> {
 	public static <A> AnyCircuit<A> any() {
 		return new AnyCircuit<A>();
 	}
+	
+	/**
+	 *
+	 * returns a Circuit condition that accepts any parameter to open gate, use max
+	 * occurences to close <br/>
+	 *
+	 * @return AnyCircuit<A>
+	 */
+	public static <A> AnyCircuit<A> any(long count) {
+		return (AnyCircuit<A>) new AnyCircuit<A>().max(count);
+	}
 
 	/**
 	 *

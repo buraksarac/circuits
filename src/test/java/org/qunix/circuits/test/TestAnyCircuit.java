@@ -19,7 +19,7 @@ public class TestAnyCircuit {
 
 	@Test
 	public void test() {
-		Circuit<Character> circuit = Circuits.<Character>any().maxOccurence(5, FailBehaviour.CLOSE);
+		Circuit<Character> circuit = Circuits.<Character>any().max(5, FailBehaviour.CLOSE);
 		circuit.assertClosed();
 		circuit.accept('a'); // 1
 		circuit.assertOpen();
