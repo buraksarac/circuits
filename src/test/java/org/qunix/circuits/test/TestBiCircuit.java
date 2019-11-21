@@ -21,7 +21,7 @@ public class TestBiCircuit {
 
 	@Test
 	public void testBiCircuit() {
-		Circuit<Character> biCircuit = Circuits.multiBiCircuit('(', ')','[', ']','{', '}');
+		Circuit<Character> biCircuit = Circuits.biCircuit('{', '}');
 		biCircuit.accept('s');
 		assertTrue(!biCircuit.isOpen());
 		biCircuit.accept('.');
@@ -31,32 +31,6 @@ public class TestBiCircuit {
 		biCircuit.accept('.');// keep open circuit
 		assertTrue(biCircuit.isOpen());
 		biCircuit.accept('}');// close circuit
-		assertTrue(!biCircuit.isOpen());
-		biCircuit.accept('a');// should be still closed
-		assertTrue(!biCircuit.isOpen());
-		
-		biCircuit.accept('s');
-		assertTrue(!biCircuit.isOpen());
-		biCircuit.accept('.');
-		assertTrue(!biCircuit.isOpen());
-		biCircuit.accept('[');// open circuit
-		assertTrue(biCircuit.isOpen());
-		biCircuit.accept('.');// keep open circuit
-		assertTrue(biCircuit.isOpen());
-		biCircuit.accept(']');// close circuit
-		assertTrue(!biCircuit.isOpen());
-		biCircuit.accept('a');// should be still closed
-		assertTrue(!biCircuit.isOpen());
-		
-		biCircuit.accept('s');
-		assertTrue(!biCircuit.isOpen());
-		biCircuit.accept('.');
-		assertTrue(!biCircuit.isOpen());
-		biCircuit.accept('(');// open circuit
-		assertTrue(biCircuit.isOpen());
-		biCircuit.accept('.');// keep open circuit
-		assertTrue(biCircuit.isOpen());
-		biCircuit.accept(')');// close circuit
 		assertTrue(!biCircuit.isOpen());
 		biCircuit.accept('a');// should be still closed
 		assertTrue(!biCircuit.isOpen());
@@ -65,25 +39,20 @@ public class TestBiCircuit {
 
 	@Test(expected = ConditionMismatchException.class)
 	public void testBiCircuitFail() {
-		Circuit<Character> biCircuit = Circuits.multiBiCircuit('(', ')','[', ']','{', '}');
+		Circuit<Character> biCircuit = Circuits.biCircuit('{', '}');
 		biCircuit.accept('s');
 		assertTrue(!biCircuit.isOpen());
 		biCircuit.accept('.');
 		assertTrue(!biCircuit.isOpen());
 		biCircuit.accept('{');// open circuit
 		assertTrue(biCircuit.isOpen());
-		biCircuit.accept('{');// keep open circuit
-		assertTrue(biCircuit.isOpen());
-		biCircuit.accept('}');// close circuit
-		assertTrue(!biCircuit.isOpen());
-		biCircuit.accept('a');// should be still closed
-		assertTrue(!biCircuit.isOpen());
+		biCircuit.accept('{');// not nested, we should fail here
 
 	}
 
 	@Test
 	public void testNestedBiCircuit() {
-		Circuit<Character> biCircuit = Circuits.multiBiCircuit('(', ')','[', ']','{', '}').nested();
+		Circuit<Character> biCircuit = Circuits.biCircuit('{', '}').nested();
 		biCircuit.accept('s');
 		assertTrue(!biCircuit.isOpen());
 		biCircuit.accept('.');
@@ -92,12 +61,12 @@ public class TestBiCircuit {
 		assertTrue(biCircuit.isOpen());
 		biCircuit.accept('.');// keep open circuit
 		assertTrue(biCircuit.isOpen());
-		biCircuit.accept('{');// open circuit
+		biCircuit.accept('{');// open another
 		assertTrue(biCircuit.isOpen());
 		biCircuit.accept('.');// keep open circuit
 		assertTrue(biCircuit.isOpen());
-		biCircuit.accept('}');// close circuit
-		biCircuit.accept('}');// close circuit
+		biCircuit.accept('}');// close inner
+		biCircuit.accept('}');// close outer
 		assertTrue(!biCircuit.isOpen());
 		biCircuit.accept('a');// should be still closed
 		assertTrue(!biCircuit.isOpen());
@@ -106,7 +75,7 @@ public class TestBiCircuit {
 
 	@Test(expected = ConditionMismatchException.class)
 	public void testNestedBiCircuitFail() {
-		Circuit<Character> biCircuit = Circuits.multiBiCircuit('(', ')','[', ']','{', '}').nested();
+		Circuit<Character> biCircuit = Circuits.biCircuit('{', '}').nested();
 		biCircuit.accept('s');
 		assertTrue(!biCircuit.isOpen());
 		biCircuit.accept('.');

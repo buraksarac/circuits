@@ -82,19 +82,23 @@ public class MultiBiCircuit<T> extends CountableCircuit<T> {
 						return false;
 					}
 					// check if last opened exist and it closes this one
-					if (nested && lastOpened + 1 != index) {
+					if (nested && lastOpened != -1 && lastOpened + 1 != index) {
 						return false;
 					}
 					this.lastOpened = -1; // reset
 
 				} else {
+					//if not nested and already open there wouldnt be another open
+					if (!nested && this.open) {
+						return false;
+					}
 					this.stackSizes[stackIndex]++;
 					this.lastOpened = index;
 					this.stateChange = true;
 				}
 
 			} else {
-				if ((index & 1) == 0) {
+				if ((index & 1) == 0) { // isEven, open operation
 					if (++this.stackSizes[stackIndex] != 1l) { // increase stack
 						return false;
 					}
