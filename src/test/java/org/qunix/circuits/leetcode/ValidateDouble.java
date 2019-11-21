@@ -20,10 +20,9 @@ public class ValidateDouble {
 
 		Circuits<Character> circuits = Circuits.of(digit, decimal, exponent);
 
-		char[] chars = "12.0e541".toCharArray();
-		for (char c : chars) {
-			circuits.accept(c);
-		}
+		"12.0e541".chars().forEach(c->{
+			circuits.accept((char) c);
+		});
 
 	}
 
