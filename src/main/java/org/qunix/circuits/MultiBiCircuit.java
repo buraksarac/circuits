@@ -30,7 +30,7 @@ public class MultiBiCircuit<T> extends CountableCircuit<T> {
 
 	private boolean nested;
 	private long[] stackSizes;
-	private T lastOpened;
+	private int lastOpened = -1;
 
 	/**
 	 * @param circuitState
@@ -69,31 +69,36 @@ public class MultiBiCircuit<T> extends CountableCircuit<T> {
 	@Override
 	protected boolean testInternal(T t, boolean isValid) {
 
+		// given param is valid
 		if (isValid) {
 
+			// get indexes so we can look its pair or related stack size
 			int index = this.values.indexOf(t);
 			int stackIndex = index >>> 1;
-			if (this.stackSizes[stackIndex] > 0l) {
-				if ((index & 1) == 1) { // isOdd
+			if (this.stackSizes[stackIndex] > 0l) { // is open
+				if ((index & 1) == 1) { // isOdd so its a close operation
 					this.stateChange = true;
-					if (--this.stackSizes[stackIndex] < 0l) {
+					if (--this.stackSizes[stackIndex] < 0l) { // reduce stack
 						return false;
 					}
-					if (this.lastOpened != null && nested && this.values.indexOf(lastOpened) + 1 != index) {
+					// check if last opened exist and it closes this one
+					if (nested && lastOpened + 1 != index) {
 						return false;
 					}
-					this.lastOpened = null;
+					this.lastOpened = -1; // reset
 
 				} else {
 					this.stackSizes[stackIndex]++;
-					this.lastOpened = t;
+					this.lastOpened = index;
 					this.stateChange = true;
 				}
 
 			} else {
 				if ((index & 1) == 0) {
-					this.stackSizes[stackIndex]++;
-					this.lastOpened = t;
+					if (++this.stackSizes[stackIndex] != 1l) { // increase stack
+						return false;
+					}
+					this.lastOpened = index;
 					this.stateChange = true;
 				} else {
 					return false;

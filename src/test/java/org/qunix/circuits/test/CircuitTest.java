@@ -16,13 +16,25 @@ public class CircuitTest {
 		Circuit<Character> condition = Circuits.flowing('e');
 		condition.accept('e');// open circuit
 		assertTrue(condition.isOpen());
+		condition.accept('a');// close circuit
+		assertTrue(!condition.isOpen());
+		condition.open();
+		assertTrue(condition.isOpen());
+		assertTrue(!condition.isClosed());
 	}
 
 	@Test
 	public void testClose() {
 		Circuit<Character> condition = Circuits.flowing('e');
-		condition.accept('e');// open circuit
+		condition.accept('a');
 		assertTrue(!condition.isOpen());
+		condition.accept('e');// open circuit
+		assertTrue(condition.isOpen());
+		condition.accept('a');// close circuit
+		assertTrue(!condition.isOpen());
+		condition.close();
+		assertTrue(!condition.isOpen());
+		assertTrue(condition.isClosed());
 	}
 
 	@Test
@@ -30,7 +42,7 @@ public class CircuitTest {
 		Circuit<Character> condition = Circuits.flowing('e', 'a');
 		condition.accept('a');// open circuit
 		assertTrue(condition.isOpen());
-		condition.accept('e');// close circuit
+		condition.accept('r');// close circuit
 		assertTrue(!condition.isOpen());
 		condition.accept('a');// open circuit
 		assertTrue(condition.isOpen());
@@ -41,7 +53,7 @@ public class CircuitTest {
 
 	@Test
 	public void testManyParamClose() {
-		Circuit<Character> condition = Circuits.flowing('e', 'a');
+		Circuit<Character> condition = Circuits.flipping('e', 'a');
 		condition.accept('x');
 		assertTrue(!condition.isOpen());
 		condition.accept('a');// open circuit
@@ -56,12 +68,11 @@ public class CircuitTest {
 
 	@Test
 	public void testWhen() {
-		// test 12.054e1
-		Circuit<Character> digit = Circuits.between('0', '9');
+		// test 12.0e541
+		Circuit<Character> digit = Circuits.between('0', '9').flowing();
 		Circuit<Character> decimal = Circuits.singlePass('.');
 		Circuit<Character> exponent = Circuits.singlePass('e');
 
-		digit.ignore(decimal, exponent);
 		digit.when(decimal).expect().circuitOpen();
 		decimal.when(exponent).expect().circuitOpen();
 
@@ -77,242 +88,126 @@ public class CircuitTest {
 
 	@Test(expected = ConditionMismatchException.class)
 	public void testWhenFail() {
-		// test 12.054e1
-		Circuit<Character> digit = Circuit.between('0', '9');
-		Circuit<Character> decimal = Circuit.singlePass('.');
-		Circuit<Character> exponent = Circuit.singlePass('e');
+		// test "12.0e5e41"
+		Circuit<Character> digit = Circuits.between('0', '9').flowing();
+		Circuit<Character> decimal = Circuits.singlePass('.');
+		Circuit<Character> exponent = Circuits.singlePass('e');
 
-		digit.ignore(decimal, exponent).when(decimal).expect().circuitOpen();
+		digit.when(decimal).expect().circuitOpen();
 		decimal.when(exponent).expect().circuitOpen();
+
+		Circuits<Character> circuits = Circuits.of(digit, decimal, exponent);
 
 		char[] chars = "12.0e5e41".toCharArray();
 		for (char c : chars) {
-			digit.accept(c);
-			decimal.accept(c);
-			exponent.accept(c);
+			circuits.accept(c);
 		}
-		assertTrue(digit.open);
-		assertTrue(decimal.open);
-		assertTrue(exponent.open);
+		circuits.assertOpen();
 
 	}
 
 	@Test
 	public void testBetween() {
-		Circuit<Character> decimal = Circuit.between('0', '9');
+		Circuit<Character> decimal = Circuits.between('0', '9').flipping();
 		decimal.accept('8');// open circuit
-		assertTrue(decimal.open);
+		assertTrue(decimal.isOpen());
 
 	}
 
 	@Test
 	public void testBetweenFail() {
-		Circuit<Character> decimal = Circuit.between('0', '9');
+		Circuit<Character> decimal = Circuits.between('0', '9').flowing();
 		decimal.accept('e');// open circuit
-		assertTrue(!decimal.open);
+		assertTrue(!decimal.isOpen());
 
 	}
 
 	@Test
 	public void testBetweenInt() {
-		Circuit<Integer> decimal = Circuit.between(0, 9);
+		Circuit<Integer> decimal = Circuits.between(0, 9).flowing();
 		decimal.accept(8);// open circuit
-		assertTrue(decimal.open);
+		assertTrue(decimal.isOpen());
 
 	}
 
 	@Test
 	public void testBetweenIntFail() {
-		Circuit<Integer> decimal = Circuit.between(0, 9);
+		Circuit<Integer> decimal = Circuits.between(0, 9).flowing();
 		decimal.accept(10);// open circuit
-		assertTrue(!decimal.open);
+		assertTrue(!decimal.isOpen());
 
 	}
 
 	@Test
 	public void testOnOpen() {
 		AtomicBoolean isOpen = new AtomicBoolean();
-		Circuit<Integer> decimal = Circuit.between(0, 9);
+		Circuit<Integer> decimal = Circuits.between(0, 9).flowing();
 
 		decimal.onOpen(i -> isOpen.set(true));
 		decimal.accept(8);// open circuit
-		assertTrue(decimal.open);
+		assertTrue(decimal.isOpen());
 		assertTrue(isOpen.get());
 	}
 
 	@Test
 	public void testOnOpen2() {
 		AtomicBoolean isOpen = new AtomicBoolean();
-		Circuit<Integer> decimal = Circuit.between(0, 9);
+		Circuit<Integer> decimal = Circuits.between(0, 9).flowing();
 
 		decimal.onOpen(i -> isOpen.set(true));
 		decimal.accept(10);// open circuit
-		assertTrue(!decimal.open);
+		assertTrue(!decimal.isOpen());
 		assertTrue(!isOpen.get());
 	}
 
 	@Test
 	public void testOnClose() {
 		AtomicBoolean isOpen = new AtomicBoolean();
-		Circuit<Integer> decimal = Circuit.between(0, 9);
+		Circuit<Integer> decimal = Circuits.between(0, 9).flowing();
 
 		decimal.onOpen(i -> isOpen.set(true));
 		decimal.onClose(i -> isOpen.set(false));
 		decimal.accept(8);// open circuit
 		decimal.accept(12);// close circuit
-		assertTrue(!decimal.open);
+		assertTrue(!decimal.isOpen());
 		assertTrue(!isOpen.get());
 	}
 
 	@Test
 	public void testOnClose2() {
 		AtomicBoolean isOpen = new AtomicBoolean();
-		Circuit<Integer> decimal = Circuit.between(0, 9);
+		Circuit<Integer> decimal = Circuits.between(0, 9).flowing();
 
 		decimal.onOpen(i -> isOpen.set(true));
 		decimal.onClose(i -> isOpen.set(false));
 		decimal.accept(12);// close circuit
-		assertTrue(!decimal.open);
+		assertTrue(!decimal.isOpen());
 		assertTrue(!isOpen.get());
 	}
 
 	@Test
-	public void testFlipCircuit() {
-		Circuit<Character> decimal = Circuit.flipping('.');
-
-		decimal.accept('.');// open circuit
-		assertTrue(decimal.open);
-		decimal.accept('.');// close circuit
-		assertTrue(!decimal.open);
-		decimal.accept('.');// open circuit
-		assertTrue(decimal.open);
-
-	}
-
-	@Test
-	public void testOpenCircuit() {
-		Circuit<Character> decimal = Circuit.flowing('.').open();
-		assertTrue(decimal.open);
-		decimal.accept('a');// close circuit
-		assertTrue(!decimal.open);
-		decimal.accept('.');// open circuit
-		assertTrue(decimal.open);
-		decimal.accept('e');// close circuit
-		assertTrue(!decimal.open);
-
-	}
-
-	@Test
-	public void testOpenFlipCircuit() {
-		Circuit<Character> decimal = Circuit.flipping('.').open();
-		assertTrue(decimal.open);
-		decimal.accept('.');// close circuit
-		assertTrue(!decimal.open);
-		decimal.accept('.');// open circuit
-		assertTrue(decimal.open);
-		decimal.accept('.');// close circuit
-		assertTrue(!decimal.open);
-
-	}
-
-	@Test
-	public void testBiCircuit() {
-		Circuit<Character> biCircuit = Circuit.biCircuit('{', '}');
-		biCircuit.accept('s');
-		assertTrue(!biCircuit.open);
-		biCircuit.accept('.');
-		assertTrue(!biCircuit.open);
-		biCircuit.accept('{');// open circuit
-		assertTrue(biCircuit.open);
-		biCircuit.accept('.');// keep open circuit
-		assertTrue(biCircuit.open);
-		biCircuit.accept('}');// close circuit
-		assertTrue(!biCircuit.open);
-		biCircuit.accept('a');// should be still closed
-		assertTrue(!biCircuit.open);
-
-	}
-
-	@Test(expected = ConditionMismatchException.class)
-	public void testBiCircuitFail() {
-		Circuit<Character> biCircuit = Circuit.biCircuit('{', '}');
-		biCircuit.accept('s');
-		assertTrue(!biCircuit.open);
-		biCircuit.accept('.');
-		assertTrue(!biCircuit.open);
-		biCircuit.accept('{');// open circuit
-		assertTrue(biCircuit.open);
-		biCircuit.accept('{');// keep open circuit
-		assertTrue(biCircuit.open);
-		biCircuit.accept('}');// close circuit
-		assertTrue(!biCircuit.open);
-		biCircuit.accept('a');// should be still closed
-		assertTrue(!biCircuit.open);
-
-	}
-
-	@Test
-	public void testNestedBiCircuit() {
-		Circuit<Character> biCircuit = Circuit.biCircuit('{', '}').nested();
-		biCircuit.accept('s');
-		assertTrue(!biCircuit.open);
-		biCircuit.accept('.');
-		assertTrue(!biCircuit.open);
-		biCircuit.accept('{');// open circuit
-		assertTrue(biCircuit.open);
-		biCircuit.accept('.');// keep open circuit
-		assertTrue(biCircuit.open);
-		biCircuit.accept('{');// open circuit
-		assertTrue(biCircuit.open);
-		biCircuit.accept('.');// keep open circuit
-		assertTrue(biCircuit.open);
-		biCircuit.accept('}');// close circuit
-		biCircuit.accept('}');// close circuit
-		assertTrue(!biCircuit.open);
-		biCircuit.accept('a');// should be still closed
-		assertTrue(!biCircuit.open);
-
-	}
-
-	@Test(expected = ConditionMismatchException.class)
-	public void testNestedBiCircuitFail() {
-		Circuit<Character> biCircuit = Circuit.biCircuit('{', '}').nested();
-		biCircuit.accept('s');
-		assertTrue(!biCircuit.open);
-		biCircuit.accept('.');
-		assertTrue(!biCircuit.open);
-		biCircuit.accept('{');// open circuit
-		assertTrue(biCircuit.open);
-		biCircuit.accept('}');// close circuit
-		assertTrue(!biCircuit.open);
-		biCircuit.accept('}');// close circuit
-
-	}
-
-	@Test
 	public void testWhileOpen() {
-		Circuit<Character> string = Circuit.flipping('"');
+		Circuit<Character> string = Circuits.flipping('"');
 		StringBuilder sb = new StringBuilder();
 		string.whileOpen(sb::append);
-		// string.onOpen(System.out::println);
 		char[] testValue = "\"this is a test\"".toCharArray();
 		for (char c : testValue) {
 			string.accept(c);
 		}
-		assertTrue(!string.open);
+		assertTrue(!string.isOpen());
 		assertTrue("this is a test".equals(sb.toString()));
 	}
 
 	@Test
 	public void testWhileClose() {
-		Circuit<Character> string = Circuit.flipping('"');
+		Circuit<Character> string = Circuits.flipping('"');
 		StringBuilder sb = new StringBuilder();
 		string.whileClosed(sb::append);
 		char[] testValue = "outSideString\"this is a test\"".toCharArray();
 		for (char c : testValue) {
 			string.accept(c);
 		}
-		assertTrue(!string.open);
+		assertTrue(!string.isOpen());
 		assertTrue("outSideString".equals(sb.toString()));
 	}
 

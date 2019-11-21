@@ -216,8 +216,27 @@ public class Circuits<T> implements Consumer<T> {
 	 * @return ImmutableCircuit<A>
 	 */
 	@SafeVarargs
-	public static <A> ImmutableCircuit<A> immutable(boolean state, A... value) {
-		return new ImmutableCircuit<A>(state, value);
+	public static <A> ImmutableCircuit<A> immutable(A... value) {
+		return new ImmutableCircuit<A>(value);
+	}
+	
+	/**
+	 *
+	 * returns a Circuit condition that its expected that its status never be
+	 * changed, which means null will be never received, otherwise it will
+	 * fail <br/>
+	 * <br/>
+	 *
+	 * 
+	 *
+	 *
+	 * @param <A>
+	 * @param state
+	 * @param value
+	 * @return ImmutableCircuit<A>
+	 */
+	public static <A> ImmutableCircuit<A> notNull() {
+		return new ImmutableCircuit<A>();
 	}
 
 	/**
@@ -322,80 +341,165 @@ public class Circuits<T> implements Consumer<T> {
 	/**
 	 *
 	 * creates values between start (inclusive) and end (inclusive) then returns a
-	 * {@link FlowingCircuit} using those values
-	 *
-	 * FlowingCircuit is a condition that opens on parameter match but closes only
-	 * if there is mismatch <br/>
-	 * <b>usage:</b><br/>
-	 * <code>
-	* Circuit< Character> circuit = Circuits.flowing('.');
-	* <br/>
-	* circuit.accept('a'); //still closed
-	* <br/>
-	* circuit.accept('.'); //opened
-	* <br/>
-	* circuit.accept('.'); //still open
-	* * <br/>
-	* circuit.accept(';'); //closed
-	* 
-	* </code> <br/>
-	 * <br/>
+	 * Between object to let user chose circuit type using those values
 	 *
 	 *
 	 * @param startInclusive
 	 * @param endInclusive
-	 * @return FlowingCircuit<Integer>
+	 * @return Between<Integer>
 	 */
-	public static FlowingCircuit<Integer> between(int startInclusive, int endInclusive) {
-		if (endInclusive <= startInclusive) {
-			throw new IllegalArgumentException("End value <= start value");
-		}
-		Integer[] vals = new Integer[endInclusive - startInclusive + 1];
-		int counter = 0;
-		for (int i = startInclusive; i <= endInclusive; i++) {
-			vals[counter++] = i;
-		}
-		return new FlowingCircuit<Integer>(false, vals);
+	public static Between<Integer> between(int startInclusive, int endInclusive) {
+		return new Between<Integer>(startInclusive, endInclusive);
 	}
 
 	/**
 	 *
-	 * * creates values between start (inclusive) and end (inclusive) then returns a
-	 * {@link FlowingCircuit} using those values
-	 *
-	 * FlowingCircuit is a condition that opens on parameter match but closes only
-	 * if there is mismatch <br/>
-	 * <b>usage:</b><br/>
-	 * <code>
-	* Circuit< Character> circuit = Circuits.flowing('.');
-	* <br/>
-	* circuit.accept('a'); //still closed
-	* <br/>
-	* circuit.accept('.'); //opened
-	* <br/>
-	* circuit.accept('.'); //still open
-	* * <br/>
-	* circuit.accept(';'); //closed
-	* 
-	* </code> <br/>
-	 * <br/>
-	 *
-	 * 
+	 * creates values between start (inclusive) and end (inclusive) then returns a
+	 * Between object to let user chose circuit type using those values
 	 *
 	 *
 	 * @param startInclusive
 	 * @param endInclusive
-	 * @return FlowingCircuit<Character>
+	 * @return Between<Integer>
 	 */
-	public static FlowingCircuit<Character> between(char startInclusive, char endInclusive) {
-		if (endInclusive <= startInclusive) {
-			throw new IllegalArgumentException("End value <= start value");
+	public static Between<Character> between(char startInclusive, char endInclusive) {
+		return new Between<Character>(startInclusive, endInclusive);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static class Between<B> {
+
+		Object[] vals;
+
+		private Between(B start, B end) {
+			if (start instanceof Integer) {
+				initInts((int) start, (int) end);
+			} else {
+				initChars((char) start, (char) end);
+			}
 		}
-		Character[] vals = new Character[endInclusive - startInclusive + 1];
-		int counter = 0;
-		for (int i = startInclusive; i <= endInclusive; i++) {
-			vals[counter++] = (char) i;
+
+		private void initInts(int startInclusive, int endInclusive) {
+			if (endInclusive <= startInclusive) {
+				throw new IllegalArgumentException("End value <= start value");
+			}
+			vals = new Object[endInclusive - startInclusive + 1];
+			int counter = 0;
+			for (int i = startInclusive; i <= endInclusive; i++) {
+				vals[counter++] = (int) i;
+			}
 		}
-		return new FlowingCircuit<Character>(false, vals);
+
+		private void initChars(char startInclusive, char endInclusive) {
+			if (endInclusive <= startInclusive) {
+				throw new IllegalArgumentException("End value <= start value");
+			}
+			vals = new Object[endInclusive - startInclusive + 1];
+			int counter = 0;
+			for (int i = startInclusive; i <= endInclusive; i++) {
+				vals[counter++] = (char) i;
+			}
+		}
+
+		/**
+		 *
+		 * returns a Circuit condition that opens on parameter match but closes only if
+		 * there is mismatch <br/>
+		 * <b>usage:</b><br/>
+		 * <code>
+		* Circuit< Character> circuit = Circuits.flowing('.');
+		* <br/>
+		* circuit.accept('a'); //still closed
+		* <br/>
+		* circuit.accept('.'); //opened
+		* <br/>
+		* circuit.accept('.'); //still open
+		* * <br/>
+		* circuit.accept(';'); //closed
+		* 
+		* </code> <br/>
+		 * <br/>
+		 *
+		 * @return FlowingCircuit<A>
+		 */
+
+		public FlowingCircuit<B> flowing() {
+			return new FlowingCircuit<B>(false, (B[]) this.vals);
+		}
+
+		/**
+		 *
+		 * returns a Circuit condition that flips its status when its receives one of
+		 * the given parameter <br/>
+		 * <b>usage:</b><br/>
+		 * <code>
+		* Circuit< Character> circuit = Circuits.flipping('.');
+		* <br/>
+		* circuit.accept('a'); //still closed
+		* <br/>
+		* circuit.accept('.'); //opened
+		* <br/>
+		* circuit.accept(';'); //still open
+		* <br/>
+		* circuit.accept('.'); //closed
+		* 
+		* </code> <br/>
+		 * <br/>
+		 *
+		 * 
+		 *
+		 *
+		 * @param <A>
+		 * @param value
+		 * @return FlipCircuit<A>
+		 */
+		public FlipCircuit<B> flipping() {
+			return new FlipCircuit<B>(false, (B[]) this.vals);
+		}
+
+		/**
+		 *
+		 * returns a Circuit condition that its expected that its status never be
+		 * changed, which means given param(s) will be never received, otherwise it will
+		 * fail <br/>
+		 * <br/>
+		 *
+		 * 
+		 *
+		 *
+		 * @return ImmutableCircuit<A>
+		 */
+		public ImmutableCircuit<B> immutable() {
+			return new ImmutableCircuit<B>((B[]) this.vals);
+		}
+
+		/**
+		 *
+		 * returns a Circuit condition that opens gate only once and fails after if
+		 * given param(s) re-occured <br/>
+		 * <b>usage:</b><br/>
+		 * <code>
+		* Circuit< Character> circuit = Circuits.singlePass('.');
+		* <br/>
+		* circuit.accept('a'); //still closed
+		* <br/>
+		* circuit.accept('.'); //opened
+		* <br/>
+		* circuit.accept(';'); //still open
+		* <br/>
+		* circuit.accept('.'); //failure
+		* 
+		* </code> <br/>
+		 * <br/>
+		 *
+		 * 
+		 *
+		 *
+		 * @return SinglePassCircuit<A>
+		 */
+		public SinglePassCircuit<B> singlePass() {
+			return new SinglePassCircuit<B>(false, (B[]) this.vals);
+		}
+
 	}
 }

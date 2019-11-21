@@ -43,13 +43,10 @@ public abstract class Circuit<T> implements Predicate<T> {
 	@SafeVarargs
 	Circuit(boolean circuitState, T... value) {
 		this.open = circuitState;
-		isNull = value == null;
+		isNull = value == null || value.length == 0;
 		if (!isNull) {
-			if (value.length == 0) {
-				throw new IllegalArgumentException("Condition value can not be empty");
-			}
 			values.addAll(Arrays.asList(value));
-			valueString = values.stream().map(t -> t.toString()).collect(Collectors.joining(","));
+			valueString = values.stream().map(t -> t==null ? "": t.toString()).collect(Collectors.joining(","));
 		}
 	}
 
@@ -252,15 +249,17 @@ public abstract class Circuit<T> implements Predicate<T> {
 		// check if parameter is a open/close signal
 		boolean valid = this.values.contains(t) || (isNull && t == null);
 		stateChange = false;
-		if (!this.preConditions.test(t, valid) || !testInternal(t, valid)
-				|| !this.postConditions.test(t, valid)) {
+		if ((!valid && !this.predicate.test(t)) // param not belongs to this check when conditions
+				|| !this.preConditions.test(t, valid) // check pre if any
+				|| !testInternal(t, valid) // actaul test
+				|| !this.postConditions.test(t, valid)) { // check post if any
 			// one of the condition didnt satisfy, fail
 			return false;
 		}
 		// notify observers
 		consumers = stateChange ? open ? openConsumers : closeConsumers : consumers;
 		consumers.forEach(c -> c.accept(t));
-		return valid ? valid : this.predicate.test(t);
+		return true;
 	}
 
 	/**
@@ -276,7 +275,8 @@ public abstract class Circuit<T> implements Predicate<T> {
 	public void accept(T t) {
 		boolean result = this.test(t);
 		if (!result) {
-			throw new Circuit.ConditionMismatchException("Condition not satisfied : " + this.toString(), t);
+			throw new Circuit.ConditionMismatchException(
+					"For parameter " + t + " Condition not satisfied : " + this.toString(), t);
 		}
 
 	}

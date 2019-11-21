@@ -10,7 +10,7 @@ public class ValidateDouble {
 	@Test
 	public void testDouble() {
 		// test 12.054e1
-		Circuit<Character> digit = Circuits.between('0', '9');
+		Circuit<Character> digit = Circuits.between('0', '9').flowing();
 		Circuit<Character> decimal = Circuits.singlePass('.');
 		Circuit<Character> exponent = Circuits.singlePass('e');
 
@@ -29,7 +29,7 @@ public class ValidateDouble {
 	@Test(expected = ConditionMismatchException.class)
 	public void testDouble2() {
 		// test 12.054.1
-		Circuit<Character> digit = Circuits.between('0', '9');
+		Circuit<Character> digit = Circuits.between('0', '9').flowing();
 		Circuit<Character> decimal = Circuits.singlePass('.');
 		Circuit<Character> exponent = Circuits.singlePass('e');
 
@@ -49,7 +49,7 @@ public class ValidateDouble {
 	@Test(expected = ConditionMismatchException.class)
 	public void testDouble3() {
 		// test 12e.054e1
-		Circuit<Character> digit = Circuits.between('0', '9');
+		Circuit<Character> digit = Circuits.between('0', '9').flowing();
 		Circuit<Character> decimal = Circuits.singlePass('.');
 		Circuit<Character> exponent = Circuits.singlePass('e');
 

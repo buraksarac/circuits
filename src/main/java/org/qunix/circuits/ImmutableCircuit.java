@@ -17,8 +17,8 @@ public class ImmutableCircuit<T> extends Circuit<T> {
 	 * @param value        constructor param
 	 */
 	@SafeVarargs
-	ImmutableCircuit(boolean circuitState, T... value) {
-		super(circuitState, value);
+	ImmutableCircuit(T... value) {
+		super(false, value);
 	}
 
 	/**
