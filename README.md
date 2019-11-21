@@ -5,7 +5,7 @@ Its not finished and I am not sure how it will go:) but you can take a look exis
 
 Some examples:
 
-Using pair of chars to open/close circuit:
+###Using pair of chars to open/close circuit:
 
 i.e. https://leetcode.com/problems/remove-invalid-parentheses/
 
