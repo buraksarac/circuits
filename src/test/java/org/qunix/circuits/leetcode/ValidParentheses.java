@@ -2,7 +2,7 @@ package org.qunix.circuits.leetcode;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.qunix.circuits.CircuitCondition;
+import org.qunix.circuits.Circuit;
 import org.qunix.circuits.Circuits;
 
 /**
@@ -14,7 +14,7 @@ public class ValidParentheses {
 
 	@Before
 	public void init() {
-		CircuitCondition<Character> circuit = Circuits.multiBiCircuit('(', ')','[', ']','{', '}').nested();
+		Circuit<Character> circuit = Circuits.multiBiCircuit('(', ')','[', ']','{', '}').nested();
 		
 
 		circuits = Circuits.of(circuit);

@@ -5,7 +5,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
-import org.qunix.circuits.CircuitCondition;
+import org.qunix.circuits.Circuit;
 import org.qunix.circuits.Circuits;
 
 /**
@@ -19,7 +19,7 @@ public class RemoveInvalidParentheses {
 
 	@Test
 	public void test1() {
-		CircuitCondition<Character> parantheses = Circuits.biCircuit('(', ')').nested();
+		Circuit<Character> parantheses = Circuits.biCircuit('(', ')').nested();
 		Circuits<Character> circuits = Circuits.of(parantheses);
 
 		StringBuilder sb = new StringBuilder();
@@ -33,7 +33,7 @@ public class RemoveInvalidParentheses {
 
 	@Test
 	public void test2() {
-		CircuitCondition<Character> parantheses = Circuits.biCircuit('(', ')').nested();
+		Circuit<Character> parantheses = Circuits.biCircuit('(', ')').nested();
 		Circuits<Character> circuits = Circuits.of(parantheses);
 
 		StringBuilder sb = new StringBuilder();
@@ -47,7 +47,7 @@ public class RemoveInvalidParentheses {
 
 	@Test
 	public void test3() {
-		CircuitCondition<Character> parantheses = Circuits.biCircuit('(', ')').nested();
+		Circuit<Character> parantheses = Circuits.biCircuit('(', ')').nested();
 		Circuits<Character> circuits = Circuits.of(parantheses);
 
 		StringBuilder sb = new StringBuilder();

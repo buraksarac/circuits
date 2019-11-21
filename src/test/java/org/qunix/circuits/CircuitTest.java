@@ -5,38 +5,38 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
-import org.qunix.circuits.CircuitCondition;
-import org.qunix.circuits.CircuitCondition.ConditionMismatchException;
+import org.qunix.circuits.Circuit;
+import org.qunix.circuits.Circuit.ConditionMismatchException;
 
 public class CircuitTest {
 
 	@Test
 	public void testOpen() {
-		CircuitCondition<Character> condition = CircuitCondition.of('e');
+		Circuit<Character> condition = Circuit.of('e');
 		condition.accept('e');// open circuit
 		assertTrue(condition.open);
 	}
 
 	@Test
 	public void testOpenFail() {
-		CircuitCondition<Character> condition = CircuitCondition.of('e');
+		Circuit<Character> condition = Circuit.of('e');
 		condition.accept('a');// open circuit
 		assertTrue(!condition.open);
 	}
 
 	@Test
 	public void testMultiOpen() {
-		CircuitCondition<Character> condition = CircuitCondition.of('e', 'a');
+		Circuit<Character> condition = Circuit.of('e', 'a');
 		condition.accept('a');// open circuit
 		assertTrue(condition.open);
-		condition = CircuitCondition.of('e', 'a');
+		condition = Circuit.of('e', 'a');
 		condition.accept('e');// open circuit
 		assertTrue(condition.open);
 	}
 
 	@Test
 	public void testMultiOpenFail() {
-		CircuitCondition<Character> condition = CircuitCondition.of('e', 'a');
+		Circuit<Character> condition = Circuit.of('e', 'a');
 		condition.accept('x');
 		assertTrue(!condition.open);
 	}
@@ -44,9 +44,9 @@ public class CircuitTest {
 	@Test
 	public void testWhen() {
 		// test 12.054e1 
-		CircuitCondition<Character> digit = CircuitCondition.between('0', '9');
-		CircuitCondition<Character> decimal = CircuitCondition.singlePass('.');
-		CircuitCondition<Character> exponent = CircuitCondition.singlePass('e');
+		Circuit<Character> digit = Circuit.between('0', '9');
+		Circuit<Character> decimal = Circuit.singlePass('.');
+		Circuit<Character> exponent = Circuit.singlePass('e');
 
 		digit.ignore(decimal, exponent);
 		digit.when(decimal).expect().circuitOpen();
@@ -67,9 +67,9 @@ public class CircuitTest {
 	@Test(expected = ConditionMismatchException.class)
 	public void testWhenFail() {
 		// test 12.054e1 
-		CircuitCondition<Character> digit = CircuitCondition.between('0', '9');
-		CircuitCondition<Character> decimal = CircuitCondition.singlePass('.');
-		CircuitCondition<Character> exponent = CircuitCondition.singlePass('e');
+		Circuit<Character> digit = Circuit.between('0', '9');
+		Circuit<Character> decimal = Circuit.singlePass('.');
+		Circuit<Character> exponent = Circuit.singlePass('e');
 
 		digit.ignore(decimal, exponent).when(decimal).expect().circuitOpen();
 		decimal.when(exponent).expect().circuitOpen();
@@ -88,7 +88,7 @@ public class CircuitTest {
 
 	@Test
 	public void testBetween() {
-		CircuitCondition<Character> decimal = CircuitCondition.between('0', '9');
+		Circuit<Character> decimal = Circuit.between('0', '9');
 		decimal.accept('8');// open circuit
 		assertTrue(decimal.open);
 
@@ -96,7 +96,7 @@ public class CircuitTest {
 
 	@Test
 	public void testBetweenFail() {
-		CircuitCondition<Character> decimal = CircuitCondition.between('0', '9');
+		Circuit<Character> decimal = Circuit.between('0', '9');
 		decimal.accept('e');// open circuit
 		assertTrue(!decimal.open);
 
@@ -104,7 +104,7 @@ public class CircuitTest {
 
 	@Test
 	public void testBetweenInt() {
-		CircuitCondition<Integer> decimal = CircuitCondition.between(0, 9);
+		Circuit<Integer> decimal = Circuit.between(0, 9);
 		decimal.accept(8);// open circuit
 		assertTrue(decimal.open);
 
@@ -112,7 +112,7 @@ public class CircuitTest {
 
 	@Test
 	public void testBetweenIntFail() {
-		CircuitCondition<Integer> decimal = CircuitCondition.between(0, 9);
+		Circuit<Integer> decimal = Circuit.between(0, 9);
 		decimal.accept(10);// open circuit
 		assertTrue(!decimal.open);
 
@@ -121,7 +121,7 @@ public class CircuitTest {
 	@Test
 	public void testOnOpen() {
 		AtomicBoolean isOpen = new AtomicBoolean();
-		CircuitCondition<Integer> decimal = CircuitCondition.between(0, 9);
+		Circuit<Integer> decimal = Circuit.between(0, 9);
 
 		decimal.onOpen(i -> isOpen.set(true));
 		decimal.accept(8);// open circuit
@@ -132,7 +132,7 @@ public class CircuitTest {
 	@Test
 	public void testOnOpen2() {
 		AtomicBoolean isOpen = new AtomicBoolean();
-		CircuitCondition<Integer> decimal = CircuitCondition.between(0, 9);
+		Circuit<Integer> decimal = Circuit.between(0, 9);
 
 		decimal.onOpen(i -> isOpen.set(true));
 		decimal.accept(10);// open circuit
@@ -143,7 +143,7 @@ public class CircuitTest {
 	@Test
 	public void testOnClose() {
 		AtomicBoolean isOpen = new AtomicBoolean();
-		CircuitCondition<Integer> decimal = CircuitCondition.between(0, 9);
+		Circuit<Integer> decimal = Circuit.between(0, 9);
 
 		decimal.onOpen(i -> isOpen.set(true));
 		decimal.onClose(i -> isOpen.set(false));
@@ -156,7 +156,7 @@ public class CircuitTest {
 	@Test
 	public void testOnClose2() {
 		AtomicBoolean isOpen = new AtomicBoolean();
-		CircuitCondition<Integer> decimal = CircuitCondition.between(0, 9);
+		Circuit<Integer> decimal = Circuit.between(0, 9);
 
 		decimal.onOpen(i -> isOpen.set(true));
 		decimal.onClose(i -> isOpen.set(false));
@@ -167,7 +167,7 @@ public class CircuitTest {
 
 	@Test
 	public void testFlipCircuit() {
-		CircuitCondition<Character> decimal = CircuitCondition.flipping('.');
+		Circuit<Character> decimal = Circuit.flipping('.');
 
 		decimal.accept('.');// open circuit
 		assertTrue(decimal.open);
@@ -180,7 +180,7 @@ public class CircuitTest {
 
 	@Test
 	public void testOpenCircuit() {
-		CircuitCondition<Character> decimal = CircuitCondition.flowing('.').open();
+		Circuit<Character> decimal = Circuit.flowing('.').open();
 		assertTrue(decimal.open);
 		decimal.accept('a');// close circuit
 		assertTrue(!decimal.open);
@@ -193,7 +193,7 @@ public class CircuitTest {
 
 	@Test
 	public void testOpenFlipCircuit() {
-		CircuitCondition<Character> decimal = CircuitCondition.flipping('.').open();
+		Circuit<Character> decimal = Circuit.flipping('.').open();
 		assertTrue(decimal.open);
 		decimal.accept('.');// close circuit
 		assertTrue(!decimal.open);
@@ -206,7 +206,7 @@ public class CircuitTest {
 
 	@Test
 	public void testBiCircuit() {
-		CircuitCondition<Character> biCircuit = CircuitCondition.biCircuit('{', '}');
+		Circuit<Character> biCircuit = Circuit.biCircuit('{', '}');
 		biCircuit.accept('s');
 		assertTrue(!biCircuit.open);
 		biCircuit.accept('.');
@@ -224,7 +224,7 @@ public class CircuitTest {
 
 	@Test(expected = ConditionMismatchException.class)
 	public void testBiCircuitFail() {
-		CircuitCondition<Character> biCircuit = CircuitCondition.biCircuit('{', '}');
+		Circuit<Character> biCircuit = Circuit.biCircuit('{', '}');
 		biCircuit.accept('s');
 		assertTrue(!biCircuit.open);
 		biCircuit.accept('.');
@@ -242,7 +242,7 @@ public class CircuitTest {
 
 	@Test
 	public void testNestedBiCircuit() {
-		CircuitCondition<Character> biCircuit = CircuitCondition.biCircuit('{', '}').nested();
+		Circuit<Character> biCircuit = Circuit.biCircuit('{', '}').nested();
 		biCircuit.accept('s');
 		assertTrue(!biCircuit.open);
 		biCircuit.accept('.');
@@ -265,7 +265,7 @@ public class CircuitTest {
 
 	@Test(expected = ConditionMismatchException.class)
 	public void testNestedBiCircuitFail() {
-		CircuitCondition<Character> biCircuit = CircuitCondition.biCircuit('{', '}').nested();
+		Circuit<Character> biCircuit = Circuit.biCircuit('{', '}').nested();
 		biCircuit.accept('s');
 		assertTrue(!biCircuit.open);
 		biCircuit.accept('.');
@@ -280,7 +280,7 @@ public class CircuitTest {
 	
 	@Test
 	public void testWhileOpen() {
-		CircuitCondition<Character> string = CircuitCondition.flipping('"');
+		Circuit<Character> string = Circuit.flipping('"');
 		StringBuilder sb = new StringBuilder();
 		string.whileOpen(sb::append);
 		//string.onOpen(System.out::println);
@@ -294,7 +294,7 @@ public class CircuitTest {
 	
 	@Test
 	public void testWhileClose() {
-		CircuitCondition<Character> string = CircuitCondition.flipping('"');
+		Circuit<Character> string = Circuit.flipping('"');
 		StringBuilder sb = new StringBuilder();
 		string.whileClosed(sb::append);
 		char[] testValue = "outSideString\"this is a test\"".toCharArray();

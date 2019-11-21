@@ -1,11 +1,24 @@
 package org.qunix.circuits;
 
+/**
+ *
+ * TODO: Comment
+ *
+ * @author bsarac
+ *
+ * @param <T> types
+ * 2019-11-21 08:58:07 +0100
+ */
 public class MultiBiCircuit<T> extends CountableCircuit<T> {
 
 	private boolean nested;
 	private long[] stackSizes;
 	private T lastOpened;
 
+	/**
+	 * @param circuitState
+	 * @param value constructor param
+	 */
 	@SafeVarargs
 	MultiBiCircuit(boolean circuitState, T... value) {
 		super(circuitState, value);
@@ -16,11 +29,23 @@ public class MultiBiCircuit<T> extends CountableCircuit<T> {
 
 	}
 
+	/**
+	 *
+	 * nested method: TODO
+	 *
+	 * 
+	 *
+	 *
+	 * @return MultiBiCircuit<T>
+	 */
 	public MultiBiCircuit<T> nested() {
 		this.nested = true;
 		return this;
 	}
 
+	/**
+	 *
+	 */
 	@Override
 	protected boolean testInternal(T t, boolean isValid) {
 
