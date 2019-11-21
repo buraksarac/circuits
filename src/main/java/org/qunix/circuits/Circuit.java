@@ -13,12 +13,11 @@ import java.util.stream.Collectors;
 
 /**
  *
- * TODO: Comment
+ * Main circuit impl. that has core functionalities
  *
  * @author bsarac
  *
- * @param <T> types
- * 2019-11-21 08:56:21 +0100
+ * @param <T> types 2019-11-21 08:56:21 +0100
  */
 public abstract class Circuit<T> implements Predicate<T> {
 
@@ -38,8 +37,8 @@ public abstract class Circuit<T> implements Predicate<T> {
 	boolean stateChange;
 
 	/**
-	 * @param circuitState
-	 * @param value constructor param
+	 * @param circuitState defaultState
+	 * @param value        values
 	 */
 	@SafeVarargs
 	Circuit(boolean circuitState, T... value) {
@@ -49,173 +48,15 @@ public abstract class Circuit<T> implements Predicate<T> {
 			if (value.length == 0) {
 				throw new IllegalArgumentException("Condition value can not be empty");
 			}
-			Arrays.asList(value).forEach(values::add);
+			values.addAll(Arrays.asList(value));
 			valueString = values.stream().map(t -> t.toString()).collect(Collectors.joining(","));
 		}
 	}
 
 	/**
 	 *
-	 * of method: TODO
-	 *
-	 * 
-	 *
-	 *
-	 * @param <A>
-	 * @param value
-	 * @return FlowingCircuit<A>
-	 */
-	@SafeVarargs
-	static <A> FlowingCircuit<A> of(A... value) {
-		return new FlowingCircuit<A>(false, value);
-	}
-
-	/**
-	 *
-	 * flowing method: TODO
-	 *
-	 * 
-	 *
-	 *
-	 * @param <A>
-	 * @param value
-	 * @return FlowingCircuit<A>
-	 */
-	@SafeVarargs
-	static <A> FlowingCircuit<A> flowing(A... value) {
-		return new FlowingCircuit<A>(false, value);
-	}
-
-	/**
-	 *
-	 * flipping method: TODO
-	 *
-	 * 
-	 *
-	 *
-	 * @param <A>
-	 * @param value
-	 * @return FlipCircuit<A>
-	 */
-	@SafeVarargs
-	static <A> FlipCircuit<A> flipping(A... value) {
-		return new FlipCircuit<A>(false, value);
-	}
-
-	/**
-	 *
-	 * immutable method: TODO
-	 *
-	 * 
-	 *
-	 *
-	 * @param <A>
-	 * @param state
-	 * @param value
-	 * @return ImmutableCircuit<A>
-	 */
-	@SafeVarargs
-	static <A> ImmutableCircuit<A> immutable(boolean state, A... value) {
-		return new ImmutableCircuit<A>(state, value);
-	}
-
-	/**
-	 *
-	 * singlePass method: TODO
-	 *
-	 * 
-	 *
-	 *
-	 * @param <A>
-	 * @param value
-	 * @return SinglePassCircuit<A>
-	 */
-	@SafeVarargs
-	static <A> SinglePassCircuit<A> singlePass(A... value) {
-		return new SinglePassCircuit<A>(false, value);
-	}
-
-	/**
-	 *
-	 * biCircuit method: TODO
-	 *
-	 * 
-	 *
-	 *
-	 * @param <A>
-	 * @param openValue
-	 * @param closeValue
-	 * @return BiCircuit<A>
-	 */
-	static <A> BiCircuit<A> biCircuit(A openValue, A closeValue) {
-		return new BiCircuit<A>(false, openValue, closeValue);
-	}
-
-	/**
-	 *
-	 * multiBiCircuit method: TODO
-	 *
-	 * 
-	 *
-	 *
-	 * @param <A>
-	 * @param value
-	 * @return MultiBiCircuit<A>
-	 */
-	@SafeVarargs
-	static <A> MultiBiCircuit<A> multiBiCircuit(A... value) {
-		return new MultiBiCircuit<A>(false, value);
-	}
-
-	/**
-	 *
-	 * between method: TODO
-	 *
-	 * 
-	 *
-	 *
-	 * @param startInclusive
-	 * @param endInclusive
-	 * @return FlowingCircuit<Integer>
-	 */
-	static FlowingCircuit<Integer> between(int startInclusive, int endInclusive) {
-		if (endInclusive <= startInclusive) {
-			throw new IllegalArgumentException("End value <= start value");
-		}
-		Integer[] vals = new Integer[endInclusive - startInclusive + 1];
-		int counter = 0;
-		for (int i = startInclusive; i <= endInclusive; i++) {
-			vals[counter++] = i;
-		}
-		return new FlowingCircuit<Integer>(false, vals);
-	}
-
-	/**
-	 *
-	 * between method: TODO
-	 *
-	 * 
-	 *
-	 *
-	 * @param startInclusive
-	 * @param endInclusive
-	 * @return FlowingCircuit<Character>
-	 */
-	static FlowingCircuit<Character> between(char startInclusive, char endInclusive) {
-		if (endInclusive <= startInclusive) {
-			throw new IllegalArgumentException("End value <= start value");
-		}
-		Character[] vals = new Character[endInclusive - startInclusive + 1];
-		int counter = 0;
-		for (int i = startInclusive; i <= endInclusive; i++) {
-			vals[counter++] = (char) i;
-		}
-		return new FlowingCircuit<Character>(false, vals);
-	}
-
-	/**
-	 *
-	 * when method: TODO
+	 * when method: Combine validation of this circuit using another circuit state
+	 * This method is used to build nested conditions using other circuits
 	 *
 	 * 
 	 *
@@ -230,7 +71,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * onOpen method: TODO
+	 * onOpen method: each time circuit opened consumer called
 	 *
 	 * 
 	 *
@@ -245,7 +86,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * onClose method: TODO
+	 * onClose method: each time circuit closed consumer called
 	 *
 	 * 
 	 *
@@ -260,7 +101,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * whileOpen method: TODO
+	 * whileOpen method: this consumer will be called while circuit state is open
 	 *
 	 * 
 	 *
@@ -275,7 +116,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * whileClosed method: TODO
+	 * whileClosed method: this consumer will be called while circuit state is close
 	 *
 	 * 
 	 *
@@ -290,7 +131,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * open method: TODO
+	 * open method: open circuit explicitly
 	 *
 	 * 
 	 *
@@ -304,7 +145,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * close method: TODO
+	 * close method: close circuit explicitly
 	 *
 	 * 
 	 *
@@ -318,7 +159,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * isOpen method: TODO
+	 * isOpen method: check if open
 	 *
 	 * 
 	 *
@@ -331,7 +172,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * isClosed method: TODO
+	 * isClosed method: check if closed
 	 *
 	 * 
 	 *
@@ -344,7 +185,8 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * ignore method: TODO
+	 * ignore method: during the stream this values will be ignored so there will be
+	 * no failure or circuit state change
 	 *
 	 * 
 	 *
@@ -361,7 +203,8 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * ignore method: TODO
+	 * ignore method: during the stream this condition values will be ignored so
+	 * there will be no failure or circuit state change
 	 *
 	 * 
 	 *
@@ -380,7 +223,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * testInternal method: TODO
+	 * testInternal method: abstract method to test given stream data
 	 *
 	 * 
 	 *
@@ -392,17 +235,28 @@ public abstract class Circuit<T> implements Predicate<T> {
 	protected abstract boolean testInternal(T t, boolean valid);
 
 	/**
-	 *
+	 * This method returns a failure status that if circuit conditions are
+	 * satisfied. False means a failure occured
+	 * 
+	 * For reading circuit state use {@link Circuit#isOpen()}
+	 * 
+	 * @return boolean true if conditions satisfied
 	 */
 	public boolean test(T t) {
-		List<Consumer<T>> consumers = open ? whileOpenConsumers : whileCloseConsumers;
-		if (!ignores.contains(t)) {
-			boolean isValid = this.values.contains(t) || (isNull && t == null);
-			if (!this.preConditions.test(t, isValid) || !testInternal(t, isValid)
-					|| !this.postConditions.test(t, isValid)) {
-				return false;
-			}
+		// check if given param needs to be ignored
+		if (ignores.contains(t)) {
+			return true;
 		}
+		// assume by default state not changed
+		List<Consumer<T>> consumers = open ? whileOpenConsumers : whileCloseConsumers;
+		// check if parameter is a open/close signal
+		boolean isValid = this.values.contains(t) || (isNull && t == null);
+		if (!this.preConditions.test(t, isValid) || !testInternal(t, isValid)
+				|| !this.postConditions.test(t, isValid)) {
+			// one of the condition didnt satisfy, fail
+			return false;
+		}
+		// notify observers
 		consumers = stateChange ? open ? openConsumers : closeConsumers : consumers;
 		consumers.forEach(c -> c.accept(t));
 		return stateChange ? !(stateChange = false) : this.predicate.test(t);
@@ -410,12 +264,13 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * accept method: TODO
+	 * accept method: same behaviour as {@link Circuit#test(Object)} except it will
+	 * throw {@link ConditionMismatchException} on failures
 	 *
 	 * 
 	 *
 	 *
-	 * @param t void
+	 * @param t param
 	 */
 	void accept(T t) {
 		boolean result = this.test(t);
@@ -426,7 +281,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 	}
 
 	/**
-	 *
+	 * to string
 	 */
 	@Override
 	public String toString() {
@@ -435,36 +290,36 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * TODO: Comment
+	 * Internal enum that marks when().expect().x() behaviour
 	 *
-	 * @author bsarac
-	 * types
-	 * 2019-11-21 08:56:21 +0100
+	 * @author bsarac types 2019-11-21 08:56:21 +0100
 	 */
 	private enum BuildType {
-		
+
 		/**
-		 * 
+		 * when this circuit receives other circuit parameter checks if other is
+		 * open/closed
 		 */
-		SOURCE, 
+		SOURCE,
 		/**
-		 * 
+		 * when this circuit receives other circuit parameter checks if given another
+		 * circuit is open/closed
 		 */
-		TARGET, 
+		TARGET,
 		/**
-		 * 
+		 * when this circuit receives other circuit parameter checks if circuit itself
+		 * is open/closed
 		 */
 		CIRCUIT;
 	}
 
 	/**
 	 *
-	 * TODO: Comment
+	 * This class is used to build nested conditions using other circuits
 	 *
 	 * @author bsarac
 	 *
-	 * @param <W> types
-	 * 2019-11-21 08:56:21 +0100
+	 * @param <W> types 2019-11-21 08:56:21 +0100
 	 */
 	public class When<W extends T> {
 
@@ -476,7 +331,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 		/**
 		 * @param or
-		 * @param source constructor param
+		 * @param source other circuit
 		 */
 		@SafeVarargs
 		private When(boolean or, Circuit<T>... source) {
@@ -487,7 +342,8 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 		/**
 		 *
-		 * expect method: TODO
+		 * expect method: When other circuit parameter received expect a condition to
+		 * satisfy
 		 *
 		 * 
 		 *
@@ -500,7 +356,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 		/**
 		 *
-		 * build method: TODO
+		 * build method: internal method to build a predicate
 		 *
 		 * 
 		 *
@@ -508,31 +364,48 @@ public abstract class Circuit<T> implements Predicate<T> {
 		 */
 		private void build() {
 			Predicate<T> predicate = t -> true;
+			// visit through build types
 			switch (this.buildType) {
+
+			// when this circuit receives other circuit parameter checks if circuit itself
+			// is open/closed
 			case CIRCUIT:
+				// iterate other circuits
 				for (Circuit<T> source : sources) {
+
 					Predicate<T> circuitPredicate = t -> {
-						return source.values.contains(t)
-								? (expectClose ? !Circuit.this.open : Circuit.this.open)
+						// if given param is not other circuit param simply ignore
+						return source.values.contains(t) ? (expectClose ? !Circuit.this.open : Circuit.this.open)
 								: true;
 					};
+					// extend predicate
 					predicate = predicate.and(circuitPredicate);
 				}
 				break;
+			// when this circuit receives other circuit parameter checks if other is
+			// open/closed
 			case SOURCE:
+				// iterate other circuits
 				for (Circuit<T> source : sources) {
 					Predicate<T> sourcePredicate = t -> {
+						// if given param is not other circuit param simply ignore
 						return source.values.contains(t) ? (expectClose ? !source.open : source.open) : true;
 					};
+					// extend predicate
 					predicate = predicate.and(sourcePredicate);
 				}
 				break;
 
 			default:
+				// when this circuit receives other circuit parameter checks if another is
+				// open/closed
+				// iterate other circuits
 				for (Circuit<T> source : sources) {
 					Predicate<T> sourcePredicate = t -> {
 						boolean condition = source.values.contains(t);
+						// given param matches one of the circuits
 						if (condition) {
+							// iterate through targets
 							for (Circuit<T> target : targets) {
 								condition = expectClose ? !target.open : target.open;
 								if (!condition) {
@@ -558,18 +431,21 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 		/**
 		 *
-		 * TODO: Comment
+		 * Nested builder for {@link When}
 		 *
 		 * @author bsarac
 		 *
-		 * @param <E> types
-		 * 2019-11-21 08:56:21 +0100
+		 * @param <E> types 2019-11-21 08:56:21 +0100
 		 */
 		public class Expect<E extends T> {
 
 			/**
 			 *
-			 * circuitClosed method: TODO
+			 * circuitClosed method: <br/>
+			 * 
+			 * For given circuit.when(otherCircuit).expect().circuitClosed(); <br/>
+			 * means: when circuit receives a param belongs to otherCircuit then it checks
+			 * circuit itself is closed
 			 *
 			 * 
 			 *
@@ -585,7 +461,11 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 			/**
 			 *
-			 * circuitOpen method: TODO
+			 * circuitOpen method: <br/>
+			 * 
+			 * For example given circuit.when(otherCircuit).expect().circuitOpen(); <br/>
+			 * means: when circuit receives a param belongs to otherCircuit then it checks
+			 * circuit itself is open
 			 *
 			 * 
 			 *
@@ -601,7 +481,11 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 			/**
 			 *
-			 * closed method: TODO
+			 * closed method: <br/>
+			 * 
+			 * For example given circuit.when(otherCircuit).expect().closed(); <br/>
+			 * means: when circuit receives a param belongs to otherCircuit then it checks
+			 * otherCircuit is closed
 			 *
 			 * 
 			 *
@@ -617,7 +501,11 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 			/**
 			 *
-			 * open method: TODO
+			 * open method: <br/>
+			 * 
+			 * For example given circuit.when(otherCircuit).expect().open(); <br/>
+			 * means: when circuit receives a param belongs to otherCircuit then it checks
+			 * otherCircuit is open
 			 *
 			 * 
 			 *
@@ -633,7 +521,12 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 			/**
 			 *
-			 * closed method: TODO
+			 * closed method: <br/>
+			 * 
+			 * For example given circuit.when(otherCircuit).expect().closed(anotherCircuit);
+			 * <br/>
+			 * means: when circuit receives a param belongs to otherCircuit then it checks
+			 * anotherCircuit is closed
 			 *
 			 * 
 			 *
@@ -653,7 +546,12 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 			/**
 			 *
-			 * open method: TODO
+			 * open method: <br/>
+			 * 
+			 * For example given circuit.when(otherCircuit).expect().open(anotherCircuit);
+			 * <br/>
+			 * means: when circuit receives a param belongs to otherCircuit then it checks
+			 * anotherCircuit is open
 			 *
 			 * 
 			 *
@@ -673,27 +571,25 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 			/**
 			 *
-			 * TODO: Comment
+			 * Class for building And or Conditions
 			 *
 			 * @author bsarac
 			 *
-			 * @param <A> types
-			 * 2019-11-21 08:56:21 +0100
+			 * @param <A> types 2019-11-21 08:56:21 +0100
 			 */
 			public class AndOr<A extends T> {
 
 				/**
 				 *
-				 * TODO: Comment
+				 * Class for building or Conditions
 				 *
-				 * @author bsarac
-				 * types
-				 * 2019-11-21 08:56:21 +0100
+				 * @author bsarac types 2019-11-21 08:56:21 +0100
 				 */
 				public class Or {
 					/**
 					 *
-					 * when method: TODO
+					 * when method: Combine validation of this circuit using another circuit state
+					 * This method is used to build nested conditions using other circuits
 					 *
 					 * 
 					 *
@@ -709,16 +605,15 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 				/**
 				 *
-				 * TODO: Comment
+				 * Class for building and Conditions
 				 *
-				 * @author bsarac
-				 * types
-				 * 2019-11-21 08:56:21 +0100
+				 * @author bsarac types 2019-11-21 08:56:21 +0100
 				 */
 				public class And {
 					/**
 					 *
-					 * when method: TODO
+					 * when method: Combine validation of this circuit using another circuit state
+					 * This method is used to build nested conditions using other circuits
 					 *
 					 * 
 					 *
@@ -734,7 +629,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 				/**
 				 *
-				 * and method: TODO
+				 * and method: append another condition to existing one using AND
 				 *
 				 * 
 				 *
@@ -748,7 +643,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 				/**
 				 *
-				 * or method: TODO
+				 * or method: append another condition to existing one using OR
 				 *
 				 * 
 				 *
@@ -766,17 +661,16 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * TODO: Comment
+	 * This exception is thrown when circuit opened/closed while its not supposed to
+	 * have state change or one of the when conditions didnt satisfy
 	 *
-	 * @author bsarac
-	 * types
-	 * 2019-11-21 08:56:21 +0100
+	 * @author bsarac types 2019-11-21 08:56:21 +0100
 	 */
 	public static class ConditionMismatchException extends IllegalStateException {
 		/**
 		 * 
 		 */
-		
+
 		/**
 		 * 
 		 */
@@ -784,7 +678,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 		/**
 		 * @param message
-		 * @param value constructor param
+		 * @param value   constructor param
 		 */
 		public ConditionMismatchException(String message, Object value) {
 			super(String.format(message, String.valueOf(value)));
@@ -793,33 +687,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 
 	/**
 	 *
-	 * TODO: Comment
-	 *
-	 * @author bsarac
-	 * types
-	 * 2019-11-21 08:56:21 +0100
-	 */
-	public static class GateOpenCountOutOfBound extends RuntimeException {
-		/**
-		 * 
-		 */
-		
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1387304757053851098L;
-
-		/**
-		 *  constructor param
-		 */
-		public GateOpenCountOutOfBound() {
-			super("Gate opened more than allowed count");
-		}
-	}
-
-	/**
-	 *
-	 * checkEmpty method: TODO
+	 * checkEmpty method: utility methods to check array null or empty
 	 *
 	 * 
 	 *

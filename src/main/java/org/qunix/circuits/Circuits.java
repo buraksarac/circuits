@@ -141,22 +141,6 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * of method: TODO
-	 *
-	 * 
-	 *
-	 *
-	 * @param <A>
-	 * @param value
-	 * @return FlowingCircuit<A>
-	 */
-	@SafeVarargs
-	public static <A> FlowingCircuit<A> of(A... value) {
-		return Circuit.of(value);
-	}
-
-	/**
-	 *
 	 * flowing method: TODO
 	 *
 	 * 
@@ -168,7 +152,7 @@ public class Circuits<T> implements Consumer<T> {
 	 */
 	@SafeVarargs
 	public static <A> FlowingCircuit<A> flowing(A... value) {
-		return Circuit.flowing(value);
+		return new FlowingCircuit<A>(false, value);
 	}
 
 	/**
@@ -184,7 +168,7 @@ public class Circuits<T> implements Consumer<T> {
 	 */
 	@SafeVarargs
 	public static <A> FlipCircuit<A> flipping(A... value) {
-		return Circuit.flipping(value);
+		return new FlipCircuit<A>(false, value);
 	}
 
 	/**
@@ -201,7 +185,7 @@ public class Circuits<T> implements Consumer<T> {
 	 */
 	@SafeVarargs
 	public static <A> ImmutableCircuit<A> immutable(boolean state, A... value) {
-		return Circuit.immutable(state, value);
+		return new ImmutableCircuit<A>(state, value);
 	}
 
 	/**
@@ -217,7 +201,7 @@ public class Circuits<T> implements Consumer<T> {
 	 */
 	@SafeVarargs
 	public static <A> SinglePassCircuit<A> singlePass(A... value) {
-		return Circuit.singlePass(value);
+		return new SinglePassCircuit<A>(false, value);
 	}
 
 	/**
@@ -233,7 +217,7 @@ public class Circuits<T> implements Consumer<T> {
 	 * @return BiCircuit<A>
 	 */
 	public static <A> BiCircuit<A> biCircuit(A openValue, A closeValue) {
-		return Circuit.biCircuit(openValue, closeValue);
+		return new BiCircuit<A>(false, openValue, closeValue);
 	}
 
 	/**
@@ -249,7 +233,7 @@ public class Circuits<T> implements Consumer<T> {
 	 */
 	@SafeVarargs
 	public static <A> MultiBiCircuit<A> multiBiCircuit(A... value) {
-		return Circuit.multiBiCircuit(value);
+		return new MultiBiCircuit<A>(false, value);
 	}
 
 	/**
@@ -264,7 +248,15 @@ public class Circuits<T> implements Consumer<T> {
 	 * @return FlowingCircuit<Integer>
 	 */
 	public static FlowingCircuit<Integer> between(int startInclusive, int endInclusive) {
-		return Circuit.between(startInclusive, endInclusive);
+		if (endInclusive <= startInclusive) {
+			throw new IllegalArgumentException("End value <= start value");
+		}
+		Integer[] vals = new Integer[endInclusive - startInclusive + 1];
+		int counter = 0;
+		for (int i = startInclusive; i <= endInclusive; i++) {
+			vals[counter++] = i;
+		}
+		return new FlowingCircuit<Integer>(false, vals);
 	}
 
 	/**
@@ -279,6 +271,14 @@ public class Circuits<T> implements Consumer<T> {
 	 * @return FlowingCircuit<Character>
 	 */
 	public static FlowingCircuit<Character> between(char startInclusive, char endInclusive) {
-		return Circuit.between(startInclusive, endInclusive);
+		if (endInclusive <= startInclusive) {
+			throw new IllegalArgumentException("End value <= start value");
+		}
+		Character[] vals = new Character[endInclusive - startInclusive + 1];
+		int counter = 0;
+		for (int i = startInclusive; i <= endInclusive; i++) {
+			vals[counter++] = (char) i;
+		}
+		return new FlowingCircuit<Character>(false, vals);
 	}
 }

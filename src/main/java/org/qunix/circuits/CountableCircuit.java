@@ -4,12 +4,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *
- * TODO: Comment
+ * abstract circuit that additionally adds support for counting opens/closes and
+ * occurrences of parameters
  *
  * @author bsarac
  *
- * @param <T> types
- * 2019-11-21 08:57:26 +0100
+ * @param <T> types 2019-11-21 08:57:26 +0100
  */
 abstract class CountableCircuit<T> extends Circuit<T> {
 
@@ -17,33 +17,34 @@ abstract class CountableCircuit<T> extends Circuit<T> {
 	long maxOpen = -1;
 	long maxClose = -1;
 	long currentOccurence = 0l;
+	long failureCount = 0l;
 	AtomicLong closes = new AtomicLong(0l);
 	AtomicLong opens = new AtomicLong(0l);
 	FailBehaviour occurenceFailBehaviour = FailBehaviour.FAIL;
 
 	/**
 	 *
-	 * TODO: Comment
+	 * When max occurence barrier reached fail behaviour will be selected through
+	 * this marker
 	 *
-	 * @author bsarac
-	 * types
-	 * 2019-11-21 08:57:26 +0100
+	 * @author bsarac types 2019-11-21 08:57:26 +0100
 	 */
 	public enum FailBehaviour {
-		
+
 		/**
-		 * 
+		 * Terminates stream
 		 */
-		FAIL, 
+		FAIL,
 		/**
-		 * 
+		 * Simply closes circuit and let the stream continue, failure count can be
+		 * accessed later
 		 */
 		CLOSE;
 	}
 
 	/**
 	 * @param circuitState
-	 * @param value constructor param
+	 * @param value        constructor param
 	 */
 	CountableCircuit(boolean circuitState, T[] value) {
 		super(circuitState, value);
@@ -54,13 +55,14 @@ abstract class CountableCircuit<T> extends Circuit<T> {
 
 	/**
 	 *
-	 * maxOccurence method: TODO
+	 * maxOccurence method: During the stream any valid parameter increases this
+	 * value
 	 *
 	 * 
 	 *
 	 *
-	 * @param max
-	 * @param behaviour
+	 * @param max       -1 is inf
+	 * @param behaviour behaviour
 	 * @return CircuitCondition<T>
 	 */
 	public Circuit<T> maxOccurence(long max, FailBehaviour behaviour) {
@@ -71,12 +73,26 @@ abstract class CountableCircuit<T> extends Circuit<T> {
 
 	/**
 	 *
-	 * maxOpen method: TODO
+	 * getFailureCount method: If FailBehaviour is {@link FailBehaviour#CLOSE} this
+	 * value incremented by each fail
 	 *
 	 * 
 	 *
 	 *
-	 * @param max
+	 * @return long 0 is no failure or {@link FailBehaviour#FAIL}
+	 */
+	public long getFailureCount() {
+		return failureCount;
+	}
+
+	/**
+	 *
+	 * maxOpen method: Limit how many times this circuit can be opened
+	 *
+	 * 
+	 *
+	 *
+	 * @param max -1 is inf
 	 * @return CircuitCondition<T>
 	 */
 	public Circuit<T> maxOpen(long max) {
@@ -86,12 +102,12 @@ abstract class CountableCircuit<T> extends Circuit<T> {
 
 	/**
 	 *
-	 * maxClose method: TODO
+	 * maxClose method: Limit how many times this circuit can be closed
 	 *
 	 * 
 	 *
 	 *
-	 * @param max
+	 * @param max -1 is inf
 	 * @return CircuitCondition<T>
 	 */
 	public Circuit<T> maxClose(long max) {
@@ -101,7 +117,7 @@ abstract class CountableCircuit<T> extends Circuit<T> {
 
 	/**
 	 *
-	 * testOccurence method: TODO
+	 * testOccurence method: internal method to validate occurence count
 	 *
 	 * 
 	 *
@@ -116,6 +132,7 @@ abstract class CountableCircuit<T> extends Circuit<T> {
 				return false;
 			} else {
 				this.open = false;
+				failureCount++;
 			}
 		}
 		return true;
@@ -123,7 +140,7 @@ abstract class CountableCircuit<T> extends Circuit<T> {
 
 	/**
 	 *
-	 * testOpen method: TODO
+	 * testOpen method: internal method to validate open count
 	 *
 	 * 
 	 *
@@ -137,7 +154,7 @@ abstract class CountableCircuit<T> extends Circuit<T> {
 
 	/**
 	 *
-	 * testClose method: TODO
+	 * testClose method: internal method to validate close count
 	 *
 	 * 
 	 *
