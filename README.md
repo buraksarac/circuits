@@ -1,5 +1,5 @@
 # circuits
-This is a new library I created for validating stream of data using circuits.
+This is a new library I created for validating stream of data using boolean circuits.
 
 Its not finished and I am not sure how it will go:) but you can take a look existing tests.
 
