@@ -20,12 +20,11 @@ public class RemoveInvalidParentheses {
 	@Test
 	public void test1() {
 		Circuit<Character> parantheses = Circuits.biCircuit('(', ')').nested();
-		Circuits<Character> circuits = Circuits.of(parantheses);
 
 		StringBuilder sb = new StringBuilder();
 
 		"()())()".chars().forEach(i -> {
-			circuits.ifAccept((char) i, sb::append);
+			parantheses.ifAccept((char) i, sb::append);
 		});
 
 		assertTrue("()()()".equals(sb.toString()));

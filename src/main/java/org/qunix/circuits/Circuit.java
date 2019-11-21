@@ -46,7 +46,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 		isNull = value == null || value.length == 0;
 		if (!isNull) {
 			values.addAll(Arrays.asList(value));
-			valueString = values.stream().map(t -> t==null ? "": t.toString()).collect(Collectors.joining(","));
+			valueString = values.stream().map(t -> t == null ? "" : t.toString()).collect(Collectors.joining(","));
 		}
 	}
 
@@ -279,6 +279,53 @@ public abstract class Circuit<T> implements Predicate<T> {
 					"For parameter " + t + " Condition not satisfied : " + this.toString(), t);
 		}
 
+	}
+
+	/**
+	 *
+	 * if conditions satisfied for the given parameter calls consumer
+	 *
+	 * 
+	 *
+	 *
+	 * @param value
+	 * @param consumer void
+	 */
+	public void ifAccept(T value, Consumer<T> consumer) {
+		if (this.test(value)) {
+			consumer.accept(value);
+		}
+	}
+
+	/**
+	 *
+	 * assertClosed method: throws {@link IllegalStateException} if circuit is in
+	 * open state
+	 *
+	 * 
+	 *
+	 *
+	 * @throws IllegalStateException void
+	 */
+	public void assertClosed() throws IllegalStateException {
+		if (this.isOpen()) {
+			throw new IllegalStateException("Circuit: " + this.valueString + " still open!");
+		}
+	}
+
+	/**
+	 *
+	 * assertOpen method: throws {@link IllegalStateException} if is in close state
+	 *
+	 * 
+	 *
+	 *
+	 * @throws IllegalStateException void
+	 */
+	public void assertOpen() throws IllegalStateException {
+		if (this.isClosed()) {
+			throw new IllegalStateException("Circuit: " + this.valueString + " still closed!");
+		}
 	}
 
 	/**
