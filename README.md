@@ -5,7 +5,7 @@ Its not finished and I am not sure how it will go:) but you can take a look exis
 
 Some examples:
 
-###Using pair of chars to open/close circuit:
+**Using pair of chars to open/close circuit**
 
 i.e. https://leetcode.com/problems/remove-invalid-parentheses/
 
@@ -21,7 +21,7 @@ StringBuilder sb = new StringBuilder();
 assertTrue("()()()".equals(sb.toString()));
 ```
 
-###Using multiple pairs
+**Using multiple pairs**
 
 i.e. https://leetcode.com/problems/valid-parentheses/
 
@@ -33,7 +33,7 @@ Circuit<Character> circuit = Circuits.multiBiCircuit('(', ')','[', ']','{', '}')
 circuit.assertClosed();
 
 ```
-###Switching states through same value
+**Switching states through same value**
 
 ```
 Circuit<Character> circuit = Circuits.flipping('.');
@@ -48,7 +48,7 @@ circuit.accept('.');// open circuit
 assertTrue(circuit.isOpen());
 
 ```
-###Creating when conditions by using another circuit
+**Creating when conditions by using another circuit**
 
 i.e. test 12.054e1
 
@@ -57,8 +57,11 @@ Circuit<Character> digit = Circuits.between('0', '9').flowing();
 Circuit<Character> decimal = Circuits.singlePass('.');
 Circuit<Character> exponent = Circuits.singlePass('e');
 
-digit.when(decimal).expect().circuitOpen();
-decimal.when(exponent).expect().circuitOpen();
+digit
+	.when(decimal).expect().circuitOpen()
+	.and().when(exponent).expect().circuitOpen()
+	.and().when(exponent).expect().open(decimal);
+
 
 Circuits<Character> circuits = Circuits.of(digit, decimal, exponent);
 

@@ -14,9 +14,11 @@ public class ValidateDouble {
 		Circuit<Character> decimal = Circuits.singlePass('.');
 		Circuit<Character> exponent = Circuits.singlePass('e');
 
-		digit.ignore(decimal, exponent);
-		digit.when(decimal).expect().circuitOpen();
-		decimal.when(exponent).expect().circuitOpen();
+		digit
+			.when(decimal).expect().circuitOpen()
+			.and().when(exponent).expect().circuitOpen()
+			.and().when(exponent).expect().open(decimal);
+		
 
 		Circuits<Character> circuits = Circuits.of(digit, decimal, exponent);
 
@@ -33,9 +35,10 @@ public class ValidateDouble {
 		Circuit<Character> decimal = Circuits.singlePass('.');
 		Circuit<Character> exponent = Circuits.singlePass('e');
 
-		digit.ignore(decimal, exponent);
-		digit.when(decimal).expect().circuitOpen();
-		decimal.when(exponent).expect().circuitOpen();
+		digit
+		.when(decimal).expect().circuitOpen()
+		.and().when(exponent).expect().circuitOpen()
+		.and().when(exponent).expect().open(decimal);
 
 		Circuits<Character> circuits = Circuits.of(digit, decimal, exponent);
 
@@ -53,9 +56,10 @@ public class ValidateDouble {
 		Circuit<Character> decimal = Circuits.singlePass('.');
 		Circuit<Character> exponent = Circuits.singlePass('e');
 
-		digit.ignore(decimal, exponent);
-		digit.when(decimal).expect().circuitOpen();
-		decimal.when(exponent).expect().circuitOpen();
+		digit
+		.when(decimal).expect().circuitOpen()
+		.and().when(exponent).expect().circuitOpen()
+		.and().when(exponent).expect().open(decimal);
 
 		Circuits<Character> circuits = Circuits.of(digit, decimal, exponent);
 

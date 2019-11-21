@@ -68,13 +68,14 @@ public class CircuitTest {
 
 	@Test
 	public void testWhen() {
-		// test 12.0e541
+		// test 12e.054e1
 		Circuit<Character> digit = Circuits.between('0', '9').flowing();
 		Circuit<Character> decimal = Circuits.singlePass('.');
 		Circuit<Character> exponent = Circuits.singlePass('e');
 
-		digit.when(decimal).expect().circuitOpen();
-		decimal.when(exponent).expect().circuitOpen();
+		digit.when(decimal).expect().circuitOpen()
+			.and().when(exponent).expect().circuitOpen()
+			.and().when(exponent).expect().open(decimal);
 
 		Circuits<Character> circuits = Circuits.of(digit, decimal, exponent);
 
@@ -93,8 +94,9 @@ public class CircuitTest {
 		Circuit<Character> decimal = Circuits.singlePass('.');
 		Circuit<Character> exponent = Circuits.singlePass('e');
 
-		digit.when(decimal).expect().circuitOpen();
-		decimal.when(exponent).expect().circuitOpen();
+		digit.when(decimal).expect().circuitOpen()
+		.and().when(exponent).expect().circuitOpen()
+		.and().when(exponent).expect().open(decimal);
 
 		Circuits<Character> circuits = Circuits.of(digit, decimal, exponent);
 
