@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @param <T> types 2019-11-21 08:57:26 +0100
  */
-abstract class CountableCircuit<T> extends Circuit<T> {
+public abstract class CountableCircuit<T> extends Circuit<T> {
 
 	long maxOccurence = -1;
 	long maxOpen = -1;
@@ -132,6 +132,7 @@ abstract class CountableCircuit<T> extends Circuit<T> {
 				return false;
 			} else {
 				this.open = false;
+				this.stateChange = true;
 				failureCount++;
 			}
 		}
