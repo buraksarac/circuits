@@ -57,7 +57,6 @@ Circuit<Character> digit = Circuits.between('0', '9').flowing();
 Circuit<Character> decimal = Circuits.singlePass('.');
 Circuit<Character> exponent = Circuits.singlePass('e');
 
-digit.ignore(decimal, exponent);
 digit.when(decimal).expect().circuitOpen();
 decimal.when(exponent).expect().circuitOpen();
 
