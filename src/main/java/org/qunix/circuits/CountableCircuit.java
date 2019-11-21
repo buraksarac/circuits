@@ -20,7 +20,10 @@ public abstract class CountableCircuit<T> extends Circuit<T> {
 	long failureCount = 0l;
 	AtomicLong closes = new AtomicLong(0l);
 	AtomicLong opens = new AtomicLong(0l);
-	FailBehaviour occurenceFailBehaviour = FailBehaviour.FAIL;
+	FailBehaviour occurenceFailBehaviour = FailBehaviour.CLOSE;
+	boolean hasMax;
+	boolean hasOpen;
+	boolean hasClose;
 
 	/**
 	 *
@@ -46,11 +49,9 @@ public abstract class CountableCircuit<T> extends Circuit<T> {
 	 * @param circuitState
 	 * @param value        constructor param
 	 */
-	CountableCircuit(boolean circuitState, T[] value) {
+	@SafeVarargs
+	CountableCircuit(boolean circuitState, T... value) {
 		super(circuitState, value);
-		this.openConsumers.add(this::testOpen);
-		this.closeConsumers.add(this::testClose);
-		this.preConditions = preConditions.and(this::testOccurence);
 	}
 
 	/**
@@ -68,13 +69,18 @@ public abstract class CountableCircuit<T> extends Circuit<T> {
 	public Circuit<T> max(long max, FailBehaviour behaviour) {
 		this.maxOccurence = max;
 		this.occurenceFailBehaviour = behaviour;
+		if (!hasMax) {
+			this.preConditions = preConditions.and(this::testOccurence);
+			hasMax = true;
+		}
 		return this;
 	}
-	
+
 	/**
 	 *
 	 * maxOccurence method: During the stream any valid parameter increases this
-	 * value, defailt fail behaviour is closing circuit, otherwise use overloaded method
+	 * value, defailt fail behaviour is closing circuit, otherwise use overloaded
+	 * method
 	 *
 	 * 
 	 *
@@ -84,9 +90,7 @@ public abstract class CountableCircuit<T> extends Circuit<T> {
 	 * @return CircuitCondition<T>
 	 */
 	public Circuit<T> max(long max) {
-		this.maxOccurence = max;
-		this.occurenceFailBehaviour = FailBehaviour.CLOSE;
-		return this;
+		return max(max, FailBehaviour.CLOSE);
 	}
 
 	/**
@@ -115,6 +119,10 @@ public abstract class CountableCircuit<T> extends Circuit<T> {
 	 */
 	public Circuit<T> maxOpen(long max) {
 		this.maxOpen = max;
+		if (!hasOpen) {
+			this.openConsumers.add(this::testOpen);
+			hasOpen = true;
+		}
 		return this;
 	}
 
@@ -130,6 +138,10 @@ public abstract class CountableCircuit<T> extends Circuit<T> {
 	 */
 	public Circuit<T> maxClose(long max) {
 		this.maxClose = max;
+		if (!hasClose) {
+			this.closeConsumers.add(this::testClose);
+			hasClose = true;
+		}
 		return this;
 	}
 

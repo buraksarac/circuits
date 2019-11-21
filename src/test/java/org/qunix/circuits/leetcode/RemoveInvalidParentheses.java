@@ -4,6 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.qunix.circuits.Circuit;
 import org.qunix.circuits.Circuits;
@@ -17,55 +18,45 @@ import org.qunix.circuits.Circuits;
  */
 public class RemoveInvalidParentheses {
 
+	Circuit<Character> circuit;
+	StringBuilder sb = new StringBuilder();
+	AtomicInteger lastOpenIndex = new AtomicInteger();
+
+	@Before
+	public void setup() {
+		circuit = Circuits.biCircuit('(', ')').nested();
+		circuit.onOpen(c -> lastOpenIndex.set(sb.length()));
+	}
+
 	@Test
 	public void test1() {
-		Circuit<Character> parantheses = Circuits.biCircuit('(', ')').nested();
-
-		StringBuilder sb = new StringBuilder();
-
-		"()())()".chars().forEach(i -> {
-			parantheses.ifAccept((char) i, sb::append);
-		});
-
-		assertTrue("()()()".equals(sb.toString()));
+		test("()())()", "()()()");
 	}
 
 	@Test
 	public void test2() {
-		Circuit<Character> parantheses = Circuits.biCircuit('(', ')').nested();
-		Circuits<Character> circuits = Circuits.of(parantheses);
-
-		StringBuilder sb = new StringBuilder();
-
-		"(a)())()".chars().forEach(i -> {
-			circuits.ifAccept((char) i, sb::append);
-		});
-
-		assertTrue("(a)()()".equals(sb.toString()));
+		test("(a)())()", "(a)()()");
 	}
 
 	@Test
 	public void test3() {
-		Circuit<Character> parantheses = Circuits.biCircuit('(', ')').nested();
-		Circuits<Character> circuits = Circuits.of(parantheses);
+		test(")(", "");
+	}
 
-		StringBuilder sb = new StringBuilder();
-		AtomicInteger count = new AtomicInteger();
-		AtomicInteger lastOpenIndex = new AtomicInteger();
-		for (char c : ")(".toCharArray()) {
-			circuits.ifAccept(c, ch->{
-				sb.append(ch);
-				if(ch == '(') {
-					lastOpenIndex.set(count.get());
-				}
-				count.getAndIncrement();
-			});
+	@Test
+	public void test4() {
+		test(")(test", "test");
+	}
+
+	private void test(String source, String expect) {
+		for (char c : source.toCharArray()) {
+			circuit.ifAccept(c, sb::append);
 		}
 
-		if (circuits.isOpen()) {
+		if (circuit.isOpen()) { 
 			sb.deleteCharAt(lastOpenIndex.get());
 		}
 
-		assertTrue("".equals(sb.toString()));
+		assertTrue(expect.equals(sb.toString()));
 	}
 }

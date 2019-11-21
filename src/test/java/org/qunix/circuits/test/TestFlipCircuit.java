@@ -3,8 +3,6 @@
  */
 package org.qunix.circuits.test;
 
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 import org.qunix.circuits.Circuit;
 import org.qunix.circuits.Circuits;
@@ -23,13 +21,13 @@ public class TestFlipCircuit {
 		Circuit<Character> circuit = Circuits.flipping('.');
 
 		circuit.accept('.');// open circuit
-		assertTrue(circuit.isOpen());
+		circuit.assertOpen();
 		circuit.accept('.');// close circuit
-		assertTrue(!circuit.isOpen());
+		circuit.assertClosed();
 		circuit.accept(null);// close circuit
-		assertTrue(!circuit.isOpen());
+		circuit.assertClosed();
 		circuit.accept('.');// open circuit
-		assertTrue(circuit.isOpen());
+		circuit.assertOpen();
 
 	}
 	
@@ -38,11 +36,11 @@ public class TestFlipCircuit {
 		Circuit<Character> circuit = Circuits.flipping('.',null);
 
 		circuit.accept('.');// open circuit
-		assertTrue(circuit.isOpen());
+		circuit.assertOpen();
 		circuit.accept(null);// close circuit
-		assertTrue(!circuit.isOpen());
+		circuit.assertClosed();
 		circuit.accept('.');// open circuit
-		assertTrue(circuit.isOpen());
+		circuit.assertOpen();
 
 	}
 	
@@ -51,21 +49,21 @@ public class TestFlipCircuit {
 		Circuit<Character> circuit = Circuits.between('a', 'z').flipping();
 
 		circuit.accept('.');// keep closed
-		assertTrue(!circuit.isOpen());
+		circuit.assertClosed();
 		circuit.accept(null);// keep closed
-		assertTrue(!circuit.isOpen());
+		circuit.assertClosed();
 		circuit.accept('b');// open
-		assertTrue(circuit.isOpen());
+		circuit.assertOpen();
 		circuit.accept('a');// close
-		assertTrue(!circuit.isOpen());
+		circuit.assertClosed();
 		circuit.accept('z');// open
-		assertTrue(circuit.isOpen());
+		circuit.assertOpen();
 		circuit.accept('a');// close
-		assertTrue(!circuit.isOpen());
+		circuit.assertClosed();
 		circuit.accept('!');// keep closed
-		assertTrue(!circuit.isOpen());
+		circuit.assertClosed();
 		circuit.accept(null);// keep closed
-		assertTrue(!circuit.isOpen());
+		circuit.assertClosed();
 
 	}
 }

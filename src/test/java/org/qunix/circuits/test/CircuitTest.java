@@ -15,25 +15,24 @@ public class CircuitTest {
 	public void testOpen() {
 		Circuit<Character> condition = Circuits.flowing('e');
 		condition.accept('e');// open circuit
-		assertTrue(condition.isOpen());
+		condition.assertOpen();
 		condition.accept('a');// close circuit
-		assertTrue(!condition.isOpen());
+		condition.assertClosed();
 		condition.open();
-		assertTrue(condition.isOpen());
-		assertTrue(!condition.isClosed());
+		condition.assertOpen();
 	}
 
 	@Test
 	public void testClose() {
 		Circuit<Character> condition = Circuits.flowing('e');
 		condition.accept('a');
-		assertTrue(!condition.isOpen());
+		condition.assertClosed();
 		condition.accept('e');// open circuit
-		assertTrue(condition.isOpen());
+		condition.assertOpen();
 		condition.accept('a');// close circuit
-		assertTrue(!condition.isOpen());
+		condition.assertClosed();
 		condition.close();
-		assertTrue(!condition.isOpen());
+		condition.assertClosed();
 		assertTrue(condition.isClosed());
 	}
 
@@ -41,29 +40,29 @@ public class CircuitTest {
 	public void testManyParamOpen() {
 		Circuit<Character> condition = Circuits.flowing('e', 'a');
 		condition.accept('a');// open circuit
-		assertTrue(condition.isOpen());
+		condition.assertOpen();
 		condition.accept('r');// close circuit
-		assertTrue(!condition.isOpen());
+		condition.assertClosed();
 		condition.accept('a');// open circuit
-		assertTrue(condition.isOpen());
+		condition.assertOpen();
 		condition = Circuits.flowing('e', 'a');
 		condition.accept('e');// open circuit
-		assertTrue(condition.isOpen());
+		condition.assertOpen();
 	}
 
 	@Test
 	public void testManyParamClose() {
 		Circuit<Character> condition = Circuits.flipping('e', 'a');
 		condition.accept('x');
-		assertTrue(!condition.isOpen());
+		condition.assertClosed();
 		condition.accept('a');// open circuit
-		assertTrue(condition.isOpen());
+		condition.assertOpen();
 		condition.accept('e');// close circuit
-		assertTrue(!condition.isOpen());
+		condition.assertClosed();
 		condition.accept('a');// open circuit
-		assertTrue(condition.isOpen());
+		condition.assertOpen();
 		condition.accept('a');// close circuit
-		assertTrue(!condition.isOpen());
+		condition.assertClosed();
 	}
 
 	@Test
@@ -73,9 +72,8 @@ public class CircuitTest {
 		Circuit<Character> decimal = Circuits.singlePass('.');
 		Circuit<Character> exponent = Circuits.singlePass('e');
 
-		digit.when(decimal).expect().circuitOpen()
-			.and().when(exponent).expect().circuitOpen()
-			.and().when(exponent).expect().open(decimal);
+		digit.when(decimal).expect().circuitOpen().and().when(exponent).expect().circuitOpen().and().when(exponent)
+				.expect().open(decimal);
 
 		Circuits<Character> circuits = Circuits.of(digit, decimal, exponent);
 
@@ -94,9 +92,8 @@ public class CircuitTest {
 		Circuit<Character> decimal = Circuits.singlePass('.');
 		Circuit<Character> exponent = Circuits.singlePass('e');
 
-		digit.when(decimal).expect().circuitOpen()
-		.and().when(exponent).expect().circuitOpen()
-		.and().when(exponent).expect().open(decimal);
+		digit.when(decimal).expect().circuitOpen().and().when(exponent).expect().circuitOpen().and().when(exponent)
+				.expect().open(decimal);
 
 		Circuits<Character> circuits = Circuits.of(digit, decimal, exponent);
 

@@ -40,6 +40,9 @@ public class BiCircuit<T> extends CountableCircuit<T> {
 	@SafeVarargs
 	BiCircuit(boolean circuitState, T... value) {
 		super(circuitState, value);
+		if (isNull || (value.length & 1) == 1) {
+			throw new IllegalArgumentException("MultiBiCircuit only accepts even number of args");
+		}
 		this.openValue = this.values.getFirst();
 		this.closeValue = this.values.getLast();
 	}

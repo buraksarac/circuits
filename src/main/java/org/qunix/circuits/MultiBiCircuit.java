@@ -20,7 +20,7 @@ package org.qunix.circuits;
 * </code> <br/>
  * <br/>
  * If you have a nested data structure like json mark as nested using
- * {@link BiCircuit#nested}
+ * {@link MultiBiCircuit#nested}
  *
  * @author bsarac
  *
@@ -39,7 +39,7 @@ public class MultiBiCircuit<T> extends CountableCircuit<T> {
 	@SafeVarargs
 	MultiBiCircuit(boolean circuitState, T... value) {
 		super(circuitState, value);
-		if ((value.length & 1) == 1) {
+		if (isNull || (value.length & 1) == 1) {
 			throw new IllegalArgumentException("MultiBiCircuit only accepts even number of args");
 		}
 		this.stackSizes = new long[value.length >>> 1];

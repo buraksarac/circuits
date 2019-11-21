@@ -3,8 +3,6 @@
  */
 package org.qunix.circuits.test;
 
-import static org.junit.Assert.assertTrue;
-
 import org.junit.Test;
 import org.qunix.circuits.Circuit;
 import org.qunix.circuits.Circuit.ConditionMismatchException;
@@ -24,11 +22,11 @@ public class TestSinglePass {
 		Circuit<Character> circuit = Circuits.singlePass('.');
 
 		circuit.accept(null);
-		assertTrue(!circuit.isOpen());
+		circuit.assertClosed();
 		circuit.accept('.');// open circuit
-		assertTrue(circuit.isOpen());
+		circuit.assertOpen();
 		circuit.accept(null);
-		assertTrue(circuit.isOpen());
+		circuit.assertOpen();
 
 	}
 
@@ -37,13 +35,13 @@ public class TestSinglePass {
 		Circuit<Character> circuit = Circuits.singlePass('.');
 
 		circuit.accept(null);
-		assertTrue(!circuit.isOpen());
+		circuit.assertClosed();
 		circuit.accept('.');// open circuit
-		assertTrue(circuit.isOpen());
+		circuit.assertOpen();
 		circuit.accept(null);
-		assertTrue(circuit.isOpen());
+		circuit.assertOpen();
 		circuit.accept('.');// open circuit
-		assertTrue(circuit.isOpen());
+		circuit.assertOpen();
 
 	}
 }
