@@ -1,9 +1,6 @@
 package org.qunix.circuits;
 
-import java.util.List;
-import java.util.function.Consumer;
-
-public class BiCircuit<T> extends CircuitCondition<T> {
+public class BiCircuit<T> extends CountableCircuit<T> {
 
 	private boolean nested;
 	private long stackSize = 0;
@@ -23,52 +20,37 @@ public class BiCircuit<T> extends CircuitCondition<T> {
 	}
 
 	@Override
-	protected boolean test(T t) {
-		List<Consumer<T>> consumers = open ? whileOpenConsumers : whileCloseConsumers;
-		boolean stateChange = false;
-		if (!ignores.contains(t)) {
+	protected boolean testInternal(T t, boolean isValid) {
 
-			if (this.values.contains(t) || (isNull && t == null)) {
-				if (this.max > -1 && ++this.currentOccurence > this.max) {
-					if(this.behaviour.equals(FailBehaviour.FAIL)){
-						return false;
-					}else {
+		if (isValid) {
+			if (this.open) {
+				if (closeValue.equals(t)) {
+					this.stateChange = true;
+					if (!nested || this.stackSize == 0l) {
 						this.open = false;
-					}
-				}
-				if (this.open) {
-					if (closeValue.equals(t)) {
-						stateChange = true;
-						if (!nested || this.stackSize == 0l) {
-							this.open = !open;
-						} else {
-							if (--this.stackSize < 0) {
-								return false;
-							}
+					} else {
+						if (--this.stackSize < 0) {
+							return false;
 						}
-					} else if (nested) {
-						this.stackSize++;
-						stateChange = true;
-					} else {
-						return false;
 					}
-
+				} else if (nested) {
+					this.stackSize++;
+					this.stateChange = true;
 				} else {
-					if (openValue.equals(t)) {
-						this.open = !open;
-						stateChange = true;
-					} else {
-						return false;
-					}
+					return false;
 				}
 
+			} else {
+				if (openValue.equals(t)) {
+					this.open = true;
+					this.stateChange = true;
+				} else {
+					return false;
+				}
 			}
-
 		}
-		consumers = stateChange ? open ? openConsumers : closeConsumers : consumers;
 
-		consumers.forEach(c -> c.accept(t));
+		return true;
 
-		return stateChange ? stateChange : this.predicate.test(t);
 	}
 }

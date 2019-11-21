@@ -1,9 +1,6 @@
 package org.qunix.circuits;
 
-import java.util.List;
-import java.util.function.Consumer;
-
-public class SinglePassCircuit<T> extends CircuitCondition<T> {
+public class SinglePassCircuit<T> extends CountableCircuit<T> {
 
 	@SafeVarargs
 	SinglePassCircuit(boolean circuitState, T... value) {
@@ -11,23 +8,17 @@ public class SinglePassCircuit<T> extends CircuitCondition<T> {
 	}
 
 	@Override
-	protected boolean test(T t) {
+	protected boolean testInternal(T t, boolean isValid) {
 
-		if (!ignores.contains(t)) {
-			if (this.values.contains(t) || (isNull && t == null)) {
-				if (this.open) {
-					return false;
-				}
-				this.open = !open;
-				this.openConsumers.forEach(c -> c.accept(t));
-				return true;
+		if (isValid) {
+			if (this.open) {
+				return false;
 			}
+			this.open = !open;
+			this.stateChange = true;
 		}
 
-		List<Consumer<T>> consumers = open ? whileOpenConsumers : whileCloseConsumers;
-		consumers.forEach(c -> c.accept(t));
-
-		return this.predicate.test(t);
+		return true;
 	}
 
 }

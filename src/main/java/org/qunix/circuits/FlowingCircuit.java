@@ -1,9 +1,6 @@
 package org.qunix.circuits;
 
-import java.util.List;
-import java.util.function.Consumer;
-
-public class FlowingCircuit<T> extends CircuitCondition<T> {
+public class FlowingCircuit<T> extends CountableCircuit<T> {
 
 	@SafeVarargs
 	FlowingCircuit(boolean circuitState, T... value) {
@@ -11,33 +8,12 @@ public class FlowingCircuit<T> extends CircuitCondition<T> {
 	}
 
 	@Override
-	protected boolean test(T t) {
-		List<Consumer<T>> consumers =  open ? whileOpenConsumers : whileCloseConsumers;
-		boolean stateChange = false;
-		if (!ignores.contains(t)) {
-			
-			if (this.values.contains(t) || (isNull && t == null)) {
-				if (this.max > -1 && ++this.currentOccurence > this.max) {
-					if(this.behaviour.equals(FailBehaviour.FAIL)){
-						return false;
-					}else {
-						this.open = false;
-					}
-				}
-				if (!this.open) {
-					this.open = !open;
-					stateChange = true;
-				}
-			} else if (this.open) {
-				this.open = !open;
-				stateChange = true;
-			}
-
+	protected boolean testInternal(T t, boolean isValid) {
+		if ((isValid && !this.open) || (!isValid && this.open)) {
+			this.open = !open;
+			this.stateChange = true;
 		}
-		consumers = stateChange ? open ? openConsumers : closeConsumers : consumers;
-		consumers.forEach(c -> c.accept(t));
-
-		return stateChange ? stateChange : this.predicate.test(t);
+		return true;
 	}
 
 }

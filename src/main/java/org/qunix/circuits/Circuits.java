@@ -54,7 +54,7 @@ public class Circuits<T> implements Consumer<T> {
 	public void assertClosed() throws IllegalStateException {
 		for (CircuitCondition<T> condition : this.conditions) {
 			if (condition.isOpen()) {
-				throw new IllegalStateException("Circuit: " + condition.valueStr.toString() + " still open!");
+				throw new IllegalStateException("Circuit: " + condition.valueString + " still open!");
 			}
 		}
 	}
@@ -62,7 +62,7 @@ public class Circuits<T> implements Consumer<T> {
 	public void assertOpen() throws IllegalStateException {
 		for (CircuitCondition<T> condition : this.conditions) {
 			if (condition.isClosed()) {
-				throw new IllegalStateException("Circuit: " + condition.valueStr.toString() + " still closed!");
+				throw new IllegalStateException("Circuit: " + condition.valueString + " still closed!");
 			}
 		}
 	}

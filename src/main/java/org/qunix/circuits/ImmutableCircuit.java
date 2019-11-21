@@ -8,14 +8,8 @@ public class ImmutableCircuit<T> extends CircuitCondition<T> {
 	}
 
 	@Override
-	protected boolean test(T t) {
-		if (!ignores.contains(t)) {
-			if (this.values.contains(t) || (isNull && t == null)) {
-				return false;
-			}
-		}
-
-		return this.predicate.test(t);
+	protected boolean testInternal(T t, boolean isValid) {
+		return isValid ? false : true;
 	}
 
 	@Override

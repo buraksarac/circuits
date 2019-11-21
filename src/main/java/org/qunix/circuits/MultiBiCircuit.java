@@ -1,9 +1,6 @@
 package org.qunix.circuits;
 
-import java.util.List;
-import java.util.function.Consumer;
-
-public class MultiBiCircuit<T> extends CircuitCondition<T> {
+public class MultiBiCircuit<T> extends CountableCircuit<T> {
 
 	private boolean nested;
 	private long[] stackSizes;
@@ -25,51 +22,41 @@ public class MultiBiCircuit<T> extends CircuitCondition<T> {
 	}
 
 	@Override
-	protected boolean test(T t) {
-		List<Consumer<T>> consumers = open ? whileOpenConsumers : whileCloseConsumers;
-		boolean stateChange = false;
-		if (!ignores.contains(t)) {
+	protected boolean testInternal(T t, boolean isValid) {
 
-			if (this.values.contains(t) || (isNull && t == null)) {
-				if (this.max > -1 && ++this.currentOccurence > this.max) {
-					if(this.behaviour.equals(FailBehaviour.FAIL)){
+		if (isValid) {
+
+			int index = this.values.indexOf(t);
+			int stackIndex = index >>> 1;
+			if (this.stackSizes[stackIndex] > 0l) {
+				if ((index & 1) == 1) { // isOdd
+					this.stateChange = true;
+					if (--this.stackSizes[stackIndex] < 0l) {
 						return false;
-					}else {
-						this.open = false;
 					}
-				}
-				int index = this.values.indexOf(t);
-				int stackIndex = index >>> 1;
-				if (this.stackSizes[stackIndex] > 0l) {
-					if ((index & 1) == 1) { // isOdd
-						stateChange = true;
-						if (--this.stackSizes[stackIndex] < 0l) {
-							return false;
-						}
-						if (lastOpened != null && nested && this.values.indexOf(lastOpened) + 1 != index) {
-							return false;
-						}
-						lastOpened = null;
-						
-					} else {
-						this.stackSizes[stackIndex]++;
-						lastOpened = t;
-						stateChange = true;
+					if (this.lastOpened != null && nested && this.values.indexOf(lastOpened) + 1 != index) {
+						return false;
 					}
+					this.lastOpened = null;
 
 				} else {
-					if ((index & 1) == 0) {
-						this.stackSizes[stackIndex]++;
-						lastOpened = t;
-						stateChange = true;
-					} else {
-						return false;
-					}
+					this.stackSizes[stackIndex]++;
+					this.lastOpened = t;
+					this.stateChange = true;
 				}
 
+			} else {
+				if ((index & 1) == 0) {
+					this.stackSizes[stackIndex]++;
+					this.lastOpened = t;
+					this.stateChange = true;
+				} else {
+					return false;
+				}
 			}
 
 		}
+
 		open = false;
 		for (long l : this.stackSizes) {
 			if (l > 0l) {
@@ -77,10 +64,7 @@ public class MultiBiCircuit<T> extends CircuitCondition<T> {
 				break;
 			}
 		}
-		consumers = stateChange ? open ? openConsumers : closeConsumers : consumers;
 
-		consumers.forEach(c -> c.accept(t));
-
-		return stateChange ? stateChange : this.predicate.test(t);
+		return true;
 	}
 }

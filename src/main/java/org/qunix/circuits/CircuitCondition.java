@@ -6,30 +6,27 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public abstract class CircuitCondition<T> {
+public abstract class CircuitCondition<T> implements Predicate<T> {
 
 	LinkedList<T> values = new LinkedList<>();
 	Set<T> ignores = new HashSet<>();
 	boolean isNull = false;
 	boolean open = false;
 	Predicate<T> predicate = t -> true;
-	StringBuilder valueStr = new StringBuilder();
-	private StringBuilder whenStr = new StringBuilder("WHEN TRUE ");
+	BiPredicate<T, Boolean> preConditions = (t, v) -> true;
+	BiPredicate<T, Boolean> postConditions = (t, v) -> true;
+
 	List<Consumer<T>> openConsumers = new ArrayList<>();
 	List<Consumer<T>> closeConsumers = new ArrayList<>();
 	List<Consumer<T>> whileOpenConsumers = new ArrayList<>();
 	List<Consumer<T>> whileCloseConsumers = new ArrayList<>();
-	long max = -1;
-	long currentOccurence = 0;
-	boolean biCircuit;
-	FailBehaviour behaviour = FailBehaviour.FAIL;
-	public enum FailBehaviour{
-		FAIL,CLOSE;
-	}
+	String valueString;
+	boolean stateChange;
 
 	@SafeVarargs
 	CircuitCondition(boolean circuitState, T... value) {
@@ -39,11 +36,8 @@ public abstract class CircuitCondition<T> {
 			if (value.length == 0) {
 				throw new IllegalArgumentException("Condition value can not be empty");
 			}
-			valueStr.append(" [ ");
 			Arrays.asList(value).forEach(values::add);
-			String valueString = values.stream().map(t -> t.toString()).collect(Collectors.joining(","));
-			valueStr.append(valueString);
-			valueStr.append(" ] ");
+			valueString = values.stream().map(t -> t.toString()).collect(Collectors.joining(","));
 		}
 	}
 
@@ -75,7 +69,7 @@ public abstract class CircuitCondition<T> {
 	static <A> BiCircuit<A> biCircuit(A openValue, A closeValue) {
 		return new BiCircuit<A>(false, openValue, closeValue);
 	}
-	
+
 	@SafeVarargs
 	static <A> MultiBiCircuit<A> multiBiCircuit(A... value) {
 		return new MultiBiCircuit<A>(false, value);
@@ -148,14 +142,6 @@ public abstract class CircuitCondition<T> {
 		return !this.open;
 	}
 
-	public CircuitCondition<T> maxOccurence(long max, FailBehaviour behaviour) {
-		this.whenStr.append(" AND [max occurence  of ").append(this.valueStr).append(" less or equals to ").append(max)
-				.append(" ] ");
-		this.max = max;
-		this.behaviour = behaviour;
-		return this;
-	}
-
 	@SafeVarargs
 	public final CircuitCondition<T> ignore(T... value) {
 		checkEmpty(value, "Empty or null ignore list");
@@ -172,7 +158,21 @@ public abstract class CircuitCondition<T> {
 		return this;
 	}
 
-	protected abstract boolean test(T t);
+	protected abstract boolean testInternal(T t, boolean valid);
+
+	public boolean test(T t) {
+		List<Consumer<T>> consumers = open ? whileOpenConsumers : whileCloseConsumers;
+		if (!ignores.contains(t)) {
+			boolean isValid = this.values.contains(t) || (isNull && t == null);
+			if (!this.preConditions.test(t, isValid) || !testInternal(t, isValid)
+					|| !this.postConditions.test(t, isValid)) {
+				return false;
+			}
+		}
+		consumers = stateChange ? open ? openConsumers : closeConsumers : consumers;
+		consumers.forEach(c -> c.accept(t));
+		return stateChange ? !(stateChange = false) : this.predicate.test(t);
+	}
 
 	void accept(T t) {
 		boolean result = this.test(t);
@@ -184,7 +184,7 @@ public abstract class CircuitCondition<T> {
 
 	@Override
 	public String toString() {
-		return this.valueStr.append("(this), condition(s):").append(this.whenStr).toString();
+		return this.valueString;
 	}
 
 	private enum BuildType {
@@ -212,7 +212,6 @@ public abstract class CircuitCondition<T> {
 
 		private void build() {
 			Predicate<T> predicate = t -> true;
-			CircuitCondition.this.whenStr.append(or ? " OR " : " AND ");
 			switch (this.buildType) {
 			case CIRCUIT:
 				for (CircuitCondition<T> source : sources) {
@@ -222,9 +221,6 @@ public abstract class CircuitCondition<T> {
 								: true;
 					};
 					predicate = predicate.and(circuitPredicate);
-					CircuitCondition.this.whenStr.append("  [ if ").append(source.valueStr)
-							.append(" received then check ").append(CircuitCondition.this.valueStr)
-							.append(expectClose ? "isClosed ]" : "isOpen ]");
 				}
 				break;
 			case SOURCE:
@@ -233,19 +229,11 @@ public abstract class CircuitCondition<T> {
 						return source.values.contains(t) ? (expectClose ? !source.open : source.open) : true;
 					};
 					predicate = predicate.and(sourcePredicate);
-					CircuitCondition.this.whenStr.append("  [ if ").append(source.valueStr)
-							.append(" received then check ").append(source.valueStr)
-							.append(expectClose ? "isClosed ]" : "isOpen ]");
 				}
 				break;
 
 			default:
 				for (CircuitCondition<T> source : sources) {
-					CircuitCondition.this.whenStr.append("  [ if ").append(source.valueStr).append(" received then ");
-					for (CircuitCondition<T> target : targets) {
-						whenStr.append("\n then check [ ").append(target.valueStr)
-								.append(expectClose ? "isClosed ]" : "isOpen ]");
-					}
 					Predicate<T> sourcePredicate = t -> {
 						boolean condition = source.values.contains(t);
 						if (condition) {

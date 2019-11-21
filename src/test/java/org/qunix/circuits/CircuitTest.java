@@ -283,6 +283,7 @@ public class CircuitTest {
 		CircuitCondition<Character> string = CircuitCondition.flipping('"');
 		StringBuilder sb = new StringBuilder();
 		string.whileOpen(sb::append);
+		//string.onOpen(System.out::println);
 		char[] testValue = "\"this is a test\"".toCharArray();
 		for(char c : testValue) {
 			string.accept(c);
