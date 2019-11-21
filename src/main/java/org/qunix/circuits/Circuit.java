@@ -250,16 +250,17 @@ public abstract class Circuit<T> implements Predicate<T> {
 		// assume by default state not changed
 		List<Consumer<T>> consumers = open ? whileOpenConsumers : whileCloseConsumers;
 		// check if parameter is a open/close signal
-		boolean isValid = this.values.contains(t) || (isNull && t == null);
-		if (!this.preConditions.test(t, isValid) || !testInternal(t, isValid)
-				|| !this.postConditions.test(t, isValid)) {
+		boolean valid = this.values.contains(t) || (isNull && t == null);
+		stateChange = false;
+		if (!this.preConditions.test(t, valid) || !testInternal(t, valid)
+				|| !this.postConditions.test(t, valid)) {
 			// one of the condition didnt satisfy, fail
 			return false;
 		}
 		// notify observers
 		consumers = stateChange ? open ? openConsumers : closeConsumers : consumers;
 		consumers.forEach(c -> c.accept(t));
-		return stateChange ? !(stateChange = false) : this.predicate.test(t);
+		return valid ? valid : this.predicate.test(t);
 	}
 
 	/**
@@ -272,7 +273,7 @@ public abstract class Circuit<T> implements Predicate<T> {
 	 *
 	 * @param t param
 	 */
-	void accept(T t) {
+	public void accept(T t) {
 		boolean result = this.test(t);
 		if (!result) {
 			throw new Circuit.ConditionMismatchException("Condition not satisfied : " + this.toString(), t);

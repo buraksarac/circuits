@@ -1,4 +1,4 @@
-package org.qunix.circuits;
+package org.qunix.circuits.test;
 
 import static org.junit.Assert.assertTrue;
 
@@ -6,67 +6,78 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 import org.qunix.circuits.Circuit;
+import org.qunix.circuits.Circuits;
 import org.qunix.circuits.Circuit.ConditionMismatchException;
 
 public class CircuitTest {
 
 	@Test
 	public void testOpen() {
-		Circuit<Character> condition = Circuit.of('e');
+		Circuit<Character> condition = Circuits.flowing('e');
 		condition.accept('e');// open circuit
-		assertTrue(condition.open);
+		assertTrue(condition.isOpen());
 	}
 
 	@Test
-	public void testOpenFail() {
-		Circuit<Character> condition = Circuit.of('e');
-		condition.accept('a');// open circuit
-		assertTrue(!condition.open);
-	}
-
-	@Test
-	public void testMultiOpen() {
-		Circuit<Character> condition = Circuit.of('e', 'a');
-		condition.accept('a');// open circuit
-		assertTrue(condition.open);
-		condition = Circuit.of('e', 'a');
+	public void testClose() {
+		Circuit<Character> condition = Circuits.flowing('e');
 		condition.accept('e');// open circuit
-		assertTrue(condition.open);
+		assertTrue(!condition.isOpen());
 	}
 
 	@Test
-	public void testMultiOpenFail() {
-		Circuit<Character> condition = Circuit.of('e', 'a');
+	public void testManyParamOpen() {
+		Circuit<Character> condition = Circuits.flowing('e', 'a');
+		condition.accept('a');// open circuit
+		assertTrue(condition.isOpen());
+		condition.accept('e');// close circuit
+		assertTrue(!condition.isOpen());
+		condition.accept('a');// open circuit
+		assertTrue(condition.isOpen());
+		condition = Circuits.flowing('e', 'a');
+		condition.accept('e');// open circuit
+		assertTrue(condition.isOpen());
+	}
+
+	@Test
+	public void testManyParamClose() {
+		Circuit<Character> condition = Circuits.flowing('e', 'a');
 		condition.accept('x');
-		assertTrue(!condition.open);
+		assertTrue(!condition.isOpen());
+		condition.accept('a');// open circuit
+		assertTrue(condition.isOpen());
+		condition.accept('e');// close circuit
+		assertTrue(!condition.isOpen());
+		condition.accept('a');// open circuit
+		assertTrue(condition.isOpen());
+		condition.accept('a');// close circuit
+		assertTrue(!condition.isOpen());
 	}
 
 	@Test
 	public void testWhen() {
-		// test 12.054e1 
-		Circuit<Character> digit = Circuit.between('0', '9');
-		Circuit<Character> decimal = Circuit.singlePass('.');
-		Circuit<Character> exponent = Circuit.singlePass('e');
+		// test 12.054e1
+		Circuit<Character> digit = Circuits.between('0', '9');
+		Circuit<Character> decimal = Circuits.singlePass('.');
+		Circuit<Character> exponent = Circuits.singlePass('e');
 
 		digit.ignore(decimal, exponent);
 		digit.when(decimal).expect().circuitOpen();
 		decimal.when(exponent).expect().circuitOpen();
 
+		Circuits<Character> circuits = Circuits.of(digit, decimal, exponent);
+
 		char[] chars = "12.0e541".toCharArray();
 		for (char c : chars) {
-			digit.accept(c);
-			decimal.accept(c);
-			exponent.accept(c);
+			circuits.accept(c);
 		}
-		assertTrue(digit.open);
-		assertTrue(decimal.open);
-		assertTrue(exponent.open);
+		circuits.assertOpen();
 
 	}
 
 	@Test(expected = ConditionMismatchException.class)
 	public void testWhenFail() {
-		// test 12.054e1 
+		// test 12.054e1
 		Circuit<Character> digit = Circuit.between('0', '9');
 		Circuit<Character> decimal = Circuit.singlePass('.');
 		Circuit<Character> exponent = Circuit.singlePass('e');
@@ -277,28 +288,28 @@ public class CircuitTest {
 		biCircuit.accept('}');// close circuit
 
 	}
-	
+
 	@Test
 	public void testWhileOpen() {
 		Circuit<Character> string = Circuit.flipping('"');
 		StringBuilder sb = new StringBuilder();
 		string.whileOpen(sb::append);
-		//string.onOpen(System.out::println);
+		// string.onOpen(System.out::println);
 		char[] testValue = "\"this is a test\"".toCharArray();
-		for(char c : testValue) {
+		for (char c : testValue) {
 			string.accept(c);
 		}
 		assertTrue(!string.open);
 		assertTrue("this is a test".equals(sb.toString()));
 	}
-	
+
 	@Test
 	public void testWhileClose() {
 		Circuit<Character> string = Circuit.flipping('"');
 		StringBuilder sb = new StringBuilder();
 		string.whileClosed(sb::append);
 		char[] testValue = "outSideString\"this is a test\"".toCharArray();
-		for(char c : testValue) {
+		for (char c : testValue) {
 			string.accept(c);
 		}
 		assertTrue(!string.open);

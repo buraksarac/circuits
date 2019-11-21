@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 
 /**
  *
- * Circuits creates and manages circuit states
+ * Class to create and manage multiple circuit instances
  *
  * @author bsarac
  *
