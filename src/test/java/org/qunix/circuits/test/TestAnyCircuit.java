@@ -30,9 +30,9 @@ public class TestAnyCircuit {
 		circuit.accept(':'); // 4
 		circuit.assertOpen();
 		circuit.accept('}'); // 5
-		circuit.assertOpen();
-		circuit.accept('|');
 		circuit.assertClosed();
+		circuit.accept('|');
+		circuit.assertOpen();
 
 	}
 }
