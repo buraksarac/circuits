@@ -4,12 +4,11 @@ import java.util.function.Consumer;
 
 /**
  *
- * TODO: Comment
+ * Circuits creates and manages circuit states
  *
  * @author bsarac
  *
- * @param <T> types
- * 2019-11-21 08:57:05 +0100
+ * @param <T> types 2019-11-21 08:57:05 +0100
  */
 public class Circuits<T> implements Consumer<T> {
 
@@ -25,7 +24,8 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * of method: TODO
+	 * Returns a {@link Circuits} instance using given parameters, after user can
+	 * call accept/ifAccept/isClosed/isOpen methods
 	 *
 	 * 
 	 *
@@ -41,7 +41,7 @@ public class Circuits<T> implements Consumer<T> {
 	}
 
 	/**
-	 *
+	 * Feeds all circuits with given parameter
 	 */
 	public void accept(T value) {
 		for (Circuit<T> condition : conditions) {
@@ -51,7 +51,7 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * ifAccept method: TODO
+	 * if all circuits are satisfied for the given parameter calls consumer
 	 *
 	 * 
 	 *
@@ -69,7 +69,7 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * isClosed method: TODO
+	 * isClosed method: returns true if all circuits closed
 	 *
 	 * 
 	 *
@@ -88,7 +88,7 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * isOpen method: TODO
+	 * isOpen method: returns true if all circuits open
 	 *
 	 * 
 	 *
@@ -107,7 +107,8 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * assertClosed method: TODO
+	 * assertClosed method: throws {@link IllegalStateException} if any of the
+	 * circuit is in open state
 	 *
 	 * 
 	 *
@@ -124,7 +125,8 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * assertOpen method: TODO
+	 * assertOpen method: throws {@link IllegalStateException} if any of the circuit
+	 * is in close state
 	 *
 	 * 
 	 *
@@ -141,10 +143,22 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * flowing method: TODO
-	 *
-	 * 
-	 *
+	 * returns a Circuit condition that opens on parameter match but closes only if
+	 * there is mismatch <br/>
+	 * <b>usage:</b><br/>
+	 * <code>
+	* Circuit< Character> circuit = Circuits.flowing('.');
+	* <br/>
+	* circuit.accept('a'); //still closed
+	* <br/>
+	* circuit.accept('.'); //opened
+	* <br/>
+	* circuit.accept('.'); //still open
+	* * <br/>
+	* circuit.accept(';'); //closed
+	* 
+	* </code> <br/>
+	 * <br/>
 	 *
 	 * @param <A>
 	 * @param value
@@ -157,7 +171,22 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * flipping method: TODO
+	 * returns a Circuit condition that flips its status when its receives one of
+	 * the given parameter <br/>
+	 * <b>usage:</b><br/>
+	 * <code>
+	* Circuit< Character> circuit = Circuits.flipping('.');
+	* <br/>
+	* circuit.accept('a'); //still closed
+	* <br/>
+	* circuit.accept('.'); //opened
+	* <br/>
+	* circuit.accept(';'); //still open
+	* <br/>
+	* circuit.accept('.'); //closed
+	* 
+	* </code> <br/>
+	 * <br/>
 	 *
 	 * 
 	 *
@@ -173,7 +202,10 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * immutable method: TODO
+	 * returns a Circuit condition that its expected that its status never be
+	 * changed, which means given param(s) will be never received, otherwise it will
+	 * fail <br/>
+	 * <br/>
 	 *
 	 * 
 	 *
@@ -190,7 +222,22 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * singlePass method: TODO
+	 * returns a Circuit condition that opens gate only once and fails after if
+	 * given param(s) re-occured <br/>
+	 * <b>usage:</b><br/>
+	 * <code>
+	* Circuit< Character> circuit = Circuits.singlePass('.');
+	* <br/>
+	* circuit.accept('a'); //still closed
+	* <br/>
+	* circuit.accept('.'); //opened
+	* <br/>
+	* circuit.accept(';'); //still open
+	* <br/>
+	* circuit.accept('.'); //failure
+	* 
+	* </code> <br/>
+	 * <br/>
 	 *
 	 * 
 	 *
@@ -206,7 +253,25 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * biCircuit method: TODO
+	 * returns a Circuit condition that uses a pair to manage circuits. first one
+	 * for opening and the second one for closing circuit <br/>
+	 * <b>usage:</b><br/>
+	 * <code>
+	 * // '{' opens and '}' closes<br/>
+	 * Circuit< Character> circuit = Circuits.biCircuit('{','}'); 
+	 * <br/>
+	 * circuit.accept('a'); //still closed
+	 * <br/>
+	 * circuit.accept('{'); //opened
+	 * <br/>
+	 * circuit.accept(';'); //still open
+	 * <br/>
+	 * circuit.accept('{'); //closed
+	 * 
+	 * </code> <br/>
+	 * <br/>
+	 * If you have a nested data structure i.e. json, mark as nested using
+	 * {@link BiCircuit#nested}
 	 *
 	 * 
 	 *
@@ -222,7 +287,25 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * multiBiCircuit method: TODO
+	 * returns a Circuit condition that uses multiple pairs to manage its state. For
+	 * each pair first one for opening and the second one for closing circuit <br/>
+	 * <b>usage:</b><br/>
+	 * <code>
+	* // '{' opens and '}' closes<br/>
+	* Circuit< Character> circuit = Circuits.multiBiCircuit('(', ')','[', ']','{', '}') 
+	* <br/>
+	* circuit.accept('a'); //still closed
+	* <br/>
+	* circuit.accept('{'); //opened
+	* <br/>
+	* circuit.accept(';'); //still open
+	* <br/>
+	* circuit.accept('{'); //closed
+	* 
+	* </code> <br/>
+	 * <br/>
+	 * If you have a nested data structure like json, mark as nested using
+	 * {@link MultiBiCircuit#nested}
 	 *
 	 * 
 	 *
@@ -238,9 +321,25 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * between method: TODO
+	 * creates values between start (inclusive) and end (inclusive) then returns a
+	 * {@link FlowingCircuit} using those values
 	 *
-	 * 
+	 * FlowingCircuit is a condition that opens on parameter match but closes only
+	 * if there is mismatch <br/>
+	 * <b>usage:</b><br/>
+	 * <code>
+	* Circuit< Character> circuit = Circuits.flowing('.');
+	* <br/>
+	* circuit.accept('a'); //still closed
+	* <br/>
+	* circuit.accept('.'); //opened
+	* <br/>
+	* circuit.accept('.'); //still open
+	* * <br/>
+	* circuit.accept(';'); //closed
+	* 
+	* </code> <br/>
+	 * <br/>
 	 *
 	 *
 	 * @param startInclusive
@@ -261,7 +360,25 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
-	 * between method: TODO
+	 * * creates values between start (inclusive) and end (inclusive) then returns a
+	 * {@link FlowingCircuit} using those values
+	 *
+	 * FlowingCircuit is a condition that opens on parameter match but closes only
+	 * if there is mismatch <br/>
+	 * <b>usage:</b><br/>
+	 * <code>
+	* Circuit< Character> circuit = Circuits.flowing('.');
+	* <br/>
+	* circuit.accept('a'); //still closed
+	* <br/>
+	* circuit.accept('.'); //opened
+	* <br/>
+	* circuit.accept('.'); //still open
+	* * <br/>
+	* circuit.accept(';'); //closed
+	* 
+	* </code> <br/>
+	 * <br/>
 	 *
 	 * 
 	 *

@@ -1,14 +1,27 @@
 package org.qunix.circuits;
 
 /**
- *
- * TODO: Comment
- *
- * @author bsarac
- *
- * @param <T> types
- * 2019-11-21 08:57:41 +0100
- */
+*
+* Circuit condition that flips its status when its receives one of the given parameter <br/>
+* <b>usage:</b><br/>
+* <code>
+* Circuit< Character> circuit = Circuits.flipping('.');
+* <br/>
+* circuit.accept('a'); //still closed
+* <br/>
+* circuit.accept('.'); //opened
+* <br/>
+* circuit.accept(';'); //still open
+* <br/>
+* circuit.accept('.'); //closed
+* 
+* </code> <br/>
+* <br/>
+*
+* @author bsarac
+*
+* @param <T> types 2019-11-21 08:54:57 +0100
+*/
 public class FlipCircuit<T> extends CountableCircuit<T> {
 
 	/**

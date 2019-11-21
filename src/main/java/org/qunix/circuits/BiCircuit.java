@@ -6,7 +6,8 @@ package org.qunix.circuits;
  * and the second one for closing circuit <br/>
  * <b>usage:</b><br/>
  * <code>
- * Circuit< Character> circuit = Circuits.biCircuit('{','}');
+ * // '{' opens and '}' closes<br/>
+ * Circuit< Character> circuit = Circuits.biCircuit('{','}'); 
  * <br/>
  * circuit.accept('a'); //still closed
  * <br/>

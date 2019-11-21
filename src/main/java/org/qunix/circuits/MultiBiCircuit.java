@@ -2,12 +2,29 @@ package org.qunix.circuits;
 
 /**
  *
- * TODO: Comment
+ * Circuit condition that uses multiple pairs to manage its state. For each pair
+ * first one for opening and the second one for closing circuit <br/>
+ * <b>usage:</b><br/>
+ * <code>
+* // '{' opens and '}' closes<br/>
+* Circuit< Character> circuit = Circuits.multiBiCircuit('(', ')','[', ']','{', '}') 
+* <br/>
+* circuit.accept('a'); //still closed
+* <br/>
+* circuit.accept('{'); //opened
+* <br/>
+* circuit.accept(';'); //still open
+* <br/>
+* circuit.accept('{'); //closed
+* 
+* </code> <br/>
+ * <br/>
+ * If you have a nested data structure like json mark as nested using
+ * {@link BiCircuit#nested}
  *
  * @author bsarac
  *
- * @param <T> types
- * 2019-11-21 08:58:07 +0100
+ * @param <T> types 2019-11-21 08:54:57 +0100
  */
 public class MultiBiCircuit<T> extends CountableCircuit<T> {
 
@@ -17,7 +34,7 @@ public class MultiBiCircuit<T> extends CountableCircuit<T> {
 
 	/**
 	 * @param circuitState
-	 * @param value constructor param
+	 * @param value        constructor param
 	 */
 	@SafeVarargs
 	MultiBiCircuit(boolean circuitState, T... value) {
@@ -31,7 +48,10 @@ public class MultiBiCircuit<T> extends CountableCircuit<T> {
 
 	/**
 	 *
-	 * nested method: TODO
+	 * nested method: marks this circuit as nested, its means i.e. for char stream
+	 * of "{a{b{}}" will still keep circuit open and there will be no failure
+	 *
+	 * If you have a nested data structure i.e. json use this method
 	 *
 	 * 
 	 *
