@@ -167,6 +167,17 @@ public class Circuits<T> implements Consumer<T> {
 
 	/**
 	 *
+	 * returns a Circuit condition that accepts any parameter to open gate, use max
+	 * occurences to close <br/>
+	 *
+	 * @return AnyCircuit<A>
+	 */
+	public static <A> AnyCircuit<A> any() {
+		return new AnyCircuit<A>();
+	}
+
+	/**
+	 *
 	 * returns a Circuit condition that flips its status when its receives one of
 	 * the given parameter <br/>
 	 * <b>usage:</b><br/>
@@ -215,12 +226,12 @@ public class Circuits<T> implements Consumer<T> {
 	public static <A> ImmutableCircuit<A> immutable(A... value) {
 		return new ImmutableCircuit<A>(value);
 	}
-	
+
 	/**
 	 *
 	 * returns a Circuit condition that its expected that its status never be
-	 * changed, which means null will be never received, otherwise it will
-	 * fail <br/>
+	 * changed, which means null will be never received, otherwise it will fail
+	 * <br/>
 	 * <br/>
 	 *
 	 * 

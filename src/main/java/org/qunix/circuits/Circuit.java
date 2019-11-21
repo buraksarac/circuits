@@ -26,6 +26,8 @@ public abstract class Circuit<T> implements Predicate<T> {
 	boolean isNull = false;
 	boolean open = false;
 	Predicate<T> predicate = t -> true;
+
+	boolean preValidation = false;
 	BiPredicate<T, Boolean> preConditions = (t, v) -> true;
 	BiPredicate<T, Boolean> postConditions = (t, v) -> true;
 
@@ -247,14 +249,14 @@ public abstract class Circuit<T> implements Predicate<T> {
 		// assume by default state not changed
 		List<Consumer<T>> consumers = open ? whileOpenConsumers : whileCloseConsumers;
 		// check if parameter is a open/close signal
-		boolean valid = this.values.contains(t) || (isNull && t == null);
+		boolean valid = this.preValidation || this.values.contains(t) || (isNull && t == null);
 		stateChange = false;
 		if ((!valid && !this.predicate.test(t)) // param not belongs to this check WHEN conditions
-				|| !this.preConditions.test(t, valid)) { 
+				|| !this.preConditions.test(t, valid)) {
 			// one of the condition didnt satisfy, fail
 			return false;
 		}
-		if(stateChange) { //one of the precondition changed state
+		if (stateChange) { // one of the precondition changed state
 			return true;
 		}
 		if (!testInternal(t, valid) || !this.postConditions.test(t, valid)) { // check post if any
