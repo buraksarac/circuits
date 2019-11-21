@@ -22,10 +22,10 @@ public class Circuits<T> implements Consumer<T> {
 			condition.accept(value);
 		}
 	}
-	
+
 	public void ifAccept(T value, Consumer<T> consumer) {
 		for (CircuitCondition<T> condition : conditions) {
-			if(condition.test(value)) {
+			if (condition.test(value)) {
 				consumer.accept(value);
 			}
 		}
