@@ -64,6 +64,7 @@ public class TestBiCircuit {
 		biCircuit.accept('.');// keep open circuit
 		biCircuit.assertOpen();
 		biCircuit.accept('}');// close inner
+		biCircuit.assertOpen();
 		biCircuit.accept('}');// close outer
 		biCircuit.assertClosed();
 		biCircuit.accept('a');// should be still closed

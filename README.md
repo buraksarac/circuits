@@ -22,6 +22,7 @@ biCircuit.assertOpen();
 biCircuit.accept('.');// keep open circuit
 biCircuit.assertOpen();
 biCircuit.accept('}');// close inner
+biCircuit.assertOpen();
 biCircuit.accept('}');// close outer
 biCircuit.assertClosed();
 biCircuit.accept('a');// should be still closed
@@ -61,7 +62,7 @@ i.e. https://leetcode.com/problems/valid-parentheses/
 ```
 Circuit<Character> circuit = Circuits.multiBiCircuit('(', ')','[', ']','{', '}').nested();
 "()[]{}".chars().forEach(i -> {
-	circuit.accept((char) i);
+	circuit.accept((char) i); //will throw exception on illegal state
 });
 circuit.assertClosed();
 
