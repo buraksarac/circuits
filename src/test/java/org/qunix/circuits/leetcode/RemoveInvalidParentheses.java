@@ -25,8 +25,8 @@ public class RemoveInvalidParentheses {
 	@Before
 	public void setup() {
 		circuit = Circuits.biCircuit('(', ')').nested();
-		circuit.onOpen(c -> lastOpenIndexes.offer(sb.length()));
-		circuit.onClose(c -> lastOpenIndexes.poll());
+		circuit.onOpen(c -> lastOpenIndexes.push(sb.length()));
+		circuit.onClose(c -> lastOpenIndexes.pollLast());
 	}
 
 	@Test
@@ -90,9 +90,7 @@ public class RemoveInvalidParentheses {
 		}
 
 		if (circuit.isOpen()) {
-			while (!lastOpenIndexes.isEmpty()) {
-				sb.deleteCharAt(Math.max(0, lastOpenIndexes.pollLast()));
-			}
+			lastOpenIndexes.stream().map(i -> Math.max(0, i)).forEach(sb::deleteCharAt);
 		}
 
 		assertEquals(expect, sb.toString());

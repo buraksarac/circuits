@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.qunix.circuits.AnyCircuit;
 import org.qunix.circuits.Circuit;
 import org.qunix.circuits.Circuits;
-import org.qunix.circuits.CountableCircuit.FailBehaviour;
 
 /**
  *
@@ -19,7 +18,7 @@ public class TestAnyCircuit {
 
 	@Test
 	public void test() {
-		Circuit<Character> circuit = Circuits.<Character>any().max(5, FailBehaviour.CLOSE);
+		Circuit<Character> circuit = Circuits.<Character>any(5);
 		circuit.assertClosed();
 		circuit.accept('a'); // 1
 		circuit.assertOpen();
