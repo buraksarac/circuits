@@ -75,10 +75,10 @@ public class MultiBiCircuit<T> extends CountableCircuit<T> {
 			// get indexes so we can look its pair or related stack size
 			int index = this.values.indexOf(t);
 			int stackIndex = index >>> 1;
-			if (this.stackSizes[stackIndex] > 0l) { // is open
+			if (this.stackSizes[stackIndex] > 0) { // is open
 				if ((index & 1) == 1) { // isOdd so its a close operation
 					this.stateChange = true;
-					if (--this.stackSizes[stackIndex] < 0l) { // reduce stack
+					if (--this.stackSizes[stackIndex] < 0) { // reduce stack
 						return false;
 					}
 					// check if last opened exist and it closes this one
